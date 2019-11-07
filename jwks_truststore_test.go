@@ -24,7 +24,7 @@ package gose
 import (
 	"bytes"
 	"errors"
-	"github.com/thalesignite/gose/jose"
+	"github.com/ThalesIgnite/gose/jose"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"

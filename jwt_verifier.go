@@ -24,7 +24,7 @@ package gose
 import (
 	"time"
 
-	"github.com/thalesignite/gose/jose"
+	"github.com/ThalesIgnite/gose/jose"
 )
 
 //JwtVerifierImpl implements the JWT Verification API

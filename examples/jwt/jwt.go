@@ -25,8 +25,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/thalesignite/gose"
-	"github.com/thalesignite/gose/jose"
+	"github.com/ThalesIgnite/gose"
+	"github.com/ThalesIgnite/gose/jose"
 	"os"
 	"time"
 )

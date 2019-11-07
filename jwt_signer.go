@@ -26,7 +26,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/thalesignite/gose/jose"
+	"github.com/ThalesIgnite/gose/jose"
 	"github.com/google/uuid"
 )
 

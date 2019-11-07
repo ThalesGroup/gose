@@ -1,4 +1,4 @@
-module github.com/thalesignite/gose
+module github.com/ThalesIgnite/gose
 
 require (
 	github.com/NebulousLabs/fastrand v0.0.0-20180208210444-3cf7173006a0

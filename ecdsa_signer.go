@@ -31,7 +31,7 @@ import (
 	"encoding/pem"
 	"math/big"
 
-	"github.com/thalesignite/gose/jose"
+	"github.com/ThalesIgnite/gose/jose"
 	"github.com/sirupsen/logrus"
 )
 

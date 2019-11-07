@@ -24,7 +24,7 @@ package gose
 import (
 	"encoding/json"
 	"errors"
-	"github.com/thalesignite/gose/jose"
+	"github.com/ThalesIgnite/gose/jose"
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"sync"

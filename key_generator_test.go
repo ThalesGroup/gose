@@ -30,7 +30,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/thalesignite/gose/jose"
+	"github.com/ThalesIgnite/gose/jose"
 	"github.com/bouk/monkey"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
