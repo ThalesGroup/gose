@@ -8,5 +8,8 @@ go:
 env:
   - GO111MODULE=on
 
+install:
+  - go get -u golang.org/x/lint/golint
+
 script:
   - make all
