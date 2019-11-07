@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.com/ThalesIgnite/gose.svg?branch=master)](https://travis-ci.com/ThalesIgnite/gose)
 # GOSE - JOSE and friends for the Go developer
 
 ## Overview
