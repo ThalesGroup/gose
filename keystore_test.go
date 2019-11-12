@@ -58,3 +58,128 @@ func TestNewTrustKeyStore(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, store)
 }
+
+func TestNewTrustKeyStoreNoKid(t *testing.T) {
+	// Setup
+	keys := map[string]jose.Jwk{
+		"issuer": &jose.PublicRsaKey{},
+	}
+
+	// Act
+	store, err := NewTrustKeyStore(keys)
+
+	// Assert
+	assert.Error(t, err, ErrInvalidKey)
+	assert.Nil(t, store)
+}
+
+func TestAddExisting(t *testing.T) {
+	// Setup
+	keys := map[string]jose.Jwk{
+		"issuer": &jose.PublicRsaKey{},
+	}
+	for _, key := range keys {
+		key.SetKid("123456")
+	}
+	// Act
+	store, err := NewTrustKeyStore(keys)
+
+	// Assert
+	assert.NoError(t, err)
+	assert.NotNil(t, store)
+
+	for issuer, jwk := range keys {
+		err = store.Add(issuer, jwk)
+	}
+
+	// Assert
+	assert.NoError(t, err)
+
+}
+
+func TestRemove(t *testing.T) {
+	// Setup
+	keys := map[string]jose.Jwk{
+		"issuer": &jose.PublicRsaKey{},
+	}
+	for _, key := range keys {
+		key.SetKid("123456")
+	}
+	// Act
+	store, err := NewTrustKeyStore(keys)
+
+	// Assert
+	assert.NoError(t, err)
+	assert.NotNil(t, store)
+
+	for issuer, jwk := range keys {
+		result := store.Remove(issuer, jwk.Kid())
+		assert.True(t, result)
+	}
+
+}
+
+func TestRemoveNoKey(t *testing.T) {
+	// Setup
+	keys := map[string]jose.Jwk{
+		"issuer": &jose.PublicRsaKey{},
+	}
+	for _, key := range keys {
+		key.SetKid("123456")
+	}
+	// Act
+	store, err := NewTrustKeyStore(keys)
+
+	// Assert
+	assert.NoError(t, err)
+	assert.NotNil(t, store)
+
+	result := store.Remove("invalid", "98765")
+	assert.False(t, result)
+
+}
+
+func TestGet(t *testing.T) {
+	// Setup
+	keys := map[string]jose.Jwk{
+		"issuer": &jose.PublicRsaKey{},
+	}
+	for _, key := range keys {
+		key.SetKid("123456")
+		key.SetAlg(jose.AlgRS512)
+		key.SetOps(validVerificationOps)
+	}
+	// Act
+	store, err := NewTrustKeyStore(keys)
+
+	// Assert
+	assert.NoError(t, err)
+	assert.NotNil(t, store)
+
+	key := store.Get("issuer", "123456")
+	assert.NotNil(t, key)
+
+}
+
+func TestGetFail(t *testing.T) {
+	// Setup
+	keys := map[string]jose.Jwk{
+		"issuer": &jose.PublicRsaKey{},
+	}
+	for _, key := range keys {
+		key.SetKid("123456")
+		key.SetAlg(jose.AlgRS512)
+		key.SetOps(validVerificationOps)
+	}
+	// Act
+	store, err := NewTrustKeyStore(keys)
+
+	// Assert
+	assert.NoError(t, err)
+	assert.NotNil(t, store)
+
+	key := store.Get("unknown", "98765")
+	assert.Nil(t, key)
+
+}
+

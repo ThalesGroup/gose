@@ -25,6 +25,7 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"crypto/rsa"
+	"math/big"
 	"regexp"
 	"testing"
 
@@ -33,7 +34,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGenerateKID(t *testing.T) {
+func TestGenerateKidRSA(t *testing.T) {
 	// Setup
 	var jwk jose.PublicRsaKey
 	jwk.N.SetBytes([]byte("12345678"))
@@ -47,7 +48,21 @@ func TestGenerateKID(t *testing.T) {
 	assert.Regexp(t, regexp.MustCompile("^[a-z0-9]{64}$"), uid)
 }
 
-func TestPrivateKeySerializeationAndDeserialization(t *testing.T) {
+func TestGenerateKidEC(t *testing.T) {
+	// Setup
+	var jwk jose.PublicEcKey
+	jwk.X.SetBytes([]byte("12345678"))
+	jwk.Y.SetBytes([]byte("87654321"))
+
+	// Act
+	uid, err := CalculateKeyID(&jwk)
+
+	// Assert
+	assert.NoError(t, err)
+	assert.Regexp(t, regexp.MustCompile("^[a-z0-9]{64}$"), uid)
+}
+
+func TestPrivateKeySerializationAndDeserialization(t *testing.T) {
 	// Setup
 	expectedOps := []jose.KeyOps{jose.KeyOpsSign}
 	originalKey, err := rsa.GenerateKey(rand.Reader, 2048)
@@ -134,6 +149,9 @@ func TestAESKeySerializationAndDeserialization(t *testing.T) {
 	assert.NoError(t, err)
 	jwk32, err = JwkFromSymmetric(key32, jose.AlgA256GCM)
 	assert.NoError(t, err)
+	jwkNil, err := JwkFromSymmetric(key32, "Illegal")
+	assert.Nil(t, jwkNil)
+	assert.Error(t, err, ErrUnsupportedKeyType)
 
 	var out16, out24, out32 []byte
 	out16, err = loadSymmetricBytes(jwk16, nil)
@@ -288,4 +306,71 @@ func TestRsaBitsToAlg(t *testing.T) {
 		result := rsaBitsToAlg(test.input)
 		assert.Equal(t, test.expected, result)
 	}
+}
+
+func TestFromBase64(t *testing.T) {
+
+	expected := big.NewInt(210)
+
+	result, err := fromBase64("0g")
+
+	assert.Equal(t, expected, result)
+	assert.Nil(t, err)
+
+}
+
+func TestFromBase64Fail(t *testing.T) {
+
+	result, err := fromBase64("uic%^&")
+
+	assert.Nil(t, result)
+	assert.NotNil(t, err)
+
+}
+
+func TestEcBitsToAlg(t *testing.T) {
+
+	testCases := []struct {
+		input    int
+		expected jose.Alg
+	}{
+		{
+			input:    256,
+			expected: jose.AlgES256,
+		},
+		{
+			input:    384,
+			expected: jose.AlgES384,
+		},
+		{
+			input:    521,
+			expected: jose.AlgES512,
+		},
+		{
+			input:    1024,
+			expected: jose.Alg("Unsupported"),
+		},
+
+	}
+	// Act + Assert
+	for _, test := range testCases {
+		result := ecBitsToAlg(test.input)
+		assert.Equal(t, test.expected, result)
+	}
+}
+
+func TestJwkToString(t *testing.T) {
+	// Setup
+	expectedOps := []jose.KeyOps{jose.KeyOpsVerify}
+	originalKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
+
+	// Act
+	jwk, err := JwkFromPublicKey(originalKey.Public(), expectedOps, nil)
+	require.NoError(t, err)
+
+	jwkString, err := JwkToString(jwk)
+
+	assert.Nil(t, err)
+	assert.Regexp(t, regexp.MustCompile(`{"key_ops":\["verify\"\],"alg":"PS256","kid":"[a-f0-9]{64}","n":"[a-zA-Z0-9-_]+","e":"[0-9A-Z]{4}","kty":"RSA"}`), jwkString)
 }
