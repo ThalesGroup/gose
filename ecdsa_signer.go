@@ -30,9 +30,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"math/big"
-
 	"github.com/ThalesIgnite/gose/jose"
-	"github.com/sirupsen/logrus"
 )
 
 //ECDSAOptions Implements crypto.SignerOpts
@@ -86,7 +84,7 @@ func (signer *ECDSASigningKey) Sign(requested jose.KeyOps, data []byte) (signatu
 
 	hasher := opts.HashFunc().New()
 	if _, err := hasher.Write([]byte(data)); err != nil {
-		logrus.Panicf("%s", err)
+		panic(err)
 	}
 
 	// Sign the string and return r, s

@@ -24,8 +24,8 @@ package gose
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/ThalesIgnite/gose/jose"
-	"github.com/sirupsen/logrus"
 	"net/http"
 	"sync"
 )
@@ -34,12 +34,13 @@ import (
 type httpClient interface {
 	Get(url string) (resp *http.Response, err error)
 }
+
 // JwksTrustStore is an implementation of the TrustStore interface and can be used for accessing VerificationKeys.
 type JwksTrustStore struct {
-	lock sync.Mutex
-	url string
+	lock   sync.Mutex
+	url    string
 	issuer string
-	keys []VerificationKey
+	keys   []VerificationKey
 	client httpClient
 }
 
@@ -54,39 +55,41 @@ func (store *JwksTrustStore) Remove(issuer, kid string) bool {
 }
 
 // Get returns a verification key for the given issuer and key id. If no key is found nil is returned.
-func (store *JwksTrustStore) Get(issuer, kid string) VerificationKey {
+func (store *JwksTrustStore) Get(issuer, kid string) (vk VerificationKey, err error) {
 	if issuer == store.issuer {
 		store.lock.Lock()
 		defer store.lock.Unlock()
 		for _, key := range store.keys {
 			if key.Kid() == kid {
-				return key
+				vk = key
+				return
 			}
 		}
 		// Not found. Refresh the keys
-		response, err := store.client.Get(store.url)
+		var response *http.Response
+		response, err = store.client.Get(store.url)
 		if err != nil {
-			logrus.Errorf("error encountered retrieving JWKS from %s: %v", store.url, err)
-			return nil
+			err = fmt.Errorf("error encountered retrieving JWKS from %s: %v", store.url, err)
+			return
 		}
 		if response.StatusCode != http.StatusOK {
-			logrus.Errorf("error encountered retrieving JWKS from %s: %d %s", store.url, response.StatusCode, response.Status)
-			return nil
+			err = fmt.Errorf("error encountered retrieving JWKS from %s: %d %s", store.url, response.StatusCode, response.Status)
+			return
 		}
 		decoder := json.NewDecoder(response.Body)
 		var jwks jose.Jwks
-		if err := decoder.Decode(&jwks); err != nil {
-			logrus.Errorf("error encountered retrieving JWKS from %s: invalid encoding", store.url)
-			return nil
+		if err = decoder.Decode(&jwks); err != nil {
+			err = fmt.Errorf("error encountered retrieving JWKS from %s: invalid encoding", store.url)
+			return
 		}
 		keys := make([]VerificationKey, 0, len(jwks.Keys))
 		for _, jwk := range jwks.Keys {
-			verificationKey, err := NewVerificationKey(jwk)
+			vk, err = NewVerificationKey(jwk)
 			if err != nil {
-				logrus.Errorf("failed to load verification key from JWK: %v", err)
-				return nil
+				err = fmt.Errorf("failed to load verification key from JWK: %v", err)
+				return
 			}
-			keys = append(keys, verificationKey)
+			keys = append(keys, vk)
 		}
 		// Replace the keys for our store.
 		store.keys = keys
@@ -94,20 +97,20 @@ func (store *JwksTrustStore) Get(issuer, kid string) VerificationKey {
 		// Try and find key in newly cached keys
 		for _, key := range store.keys {
 			if key.Kid() == kid {
-				return key
+				vk = key
+				return key, nil
 			}
 		}
 		// No such currently valid key.
 	}
-	return nil
+	return
 }
-
 
 // NewJwksKeyStore creates a new instance of a TrustStore and can be used to load verification keys.
 func NewJwksKeyStore(issuer, url string) *JwksTrustStore {
 	return &JwksTrustStore{
-		url:url,
-		issuer:issuer,
-		client:http.DefaultClient,
+		url:    url,
+		issuer: issuer,
+		client: http.DefaultClient,
 	}
 }

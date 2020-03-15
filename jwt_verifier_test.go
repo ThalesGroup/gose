@@ -28,8 +28,8 @@ import (
 
 	"crypto/x509"
 
+	"bou.ke/monkey"
 	"github.com/ThalesIgnite/gose/jose"
-	"github.com/bouk/monkey"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"

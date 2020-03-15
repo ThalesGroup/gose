@@ -84,14 +84,15 @@ func TestJwksTrustStore_Get(t *testing.T) {
 	mockedClient.On("Get", "https://www.googleapis.com/oauth2/v3/certs").Return(
 		&http.Response{
 			StatusCode: http.StatusOK,
-			Body: ioutil.NopCloser(bytes.NewReader([]byte(jwks))),
+			Body:       ioutil.NopCloser(bytes.NewReader([]byte(jwks))),
 		}, nil).Once()
 	store := NewJwksKeyStore("https://accounts.google.com", "https://www.googleapis.com/oauth2/v3/certs")
 	store.client = mockedClient
-	key := store.Get("https://accounts.google.com", "60f4060e58d75fd3f70beff88c794a775327aa31")
+	key, _ := store.Get("https://accounts.google.com", "60f4060e58d75fd3f70beff88c794a775327aa31")
 	assert.NotNil(t, key)
 	require.Len(t, store.keys, 2)
-	assert.NotNil(t, store.Get("https://accounts.google.com", "df8d9ee403bcc7185ad51041194bd3433742d9aa"))
+	got, _ := store.Get("https://accounts.google.com", "df8d9ee403bcc7185ad51041194bd3433742d9aa")
+	assert.NotNil(t, got)
 	mockedClient.AssertExpectations(t)
 }
 
@@ -102,7 +103,7 @@ func TestJwksTrustStore_GetHttpClientError(t *testing.T) {
 	store := NewJwksKeyStore("https://accounts.google.com", "https://www.googleapis.com/oauth2/v3/certs")
 	store.client = mockedClient
 	for i := 0; i < 2; i++ {
-		key := store.Get("https://accounts.google.com", "invalid")
+		key, _ := store.Get("https://accounts.google.com", "invalid")
 		assert.Nil(t, key)
 		require.Len(t, store.keys, 0)
 	}
@@ -114,12 +115,12 @@ func TestJwksTrustStore_GetHttpError(t *testing.T) {
 	mockedClient.On("Get", "https://www.googleapis.com/oauth2/v3/certs").Return(
 		&http.Response{
 			StatusCode: http.StatusForbidden,
-			Body: ioutil.NopCloser(bytes.NewReader([]byte(jwks))),
+			Body:       ioutil.NopCloser(bytes.NewReader([]byte(jwks))),
 		}, nil).Times(2)
 	store := NewJwksKeyStore("https://accounts.google.com", "https://www.googleapis.com/oauth2/v3/certs")
 	store.client = mockedClient
 	for i := 0; i < 2; i++ {
-		key := store.Get("https://accounts.google.com", "invalid")
+		key, _ := store.Get("https://accounts.google.com", "invalid")
 		assert.Nil(t, key)
 		require.Len(t, store.keys, 0)
 	}
@@ -131,12 +132,12 @@ func TestJwksTrustStore_GetInvalidJwksEncoding(t *testing.T) {
 	mockedClient.On("Get", "https://www.googleapis.com/oauth2/v3/certs").Return(
 		&http.Response{
 			StatusCode: http.StatusOK,
-			Body: ioutil.NopCloser(bytes.NewReader([]byte("invalid"))),
+			Body:       ioutil.NopCloser(bytes.NewReader([]byte("invalid"))),
 		}, nil).Times(2)
 	store := NewJwksKeyStore("https://accounts.google.com", "https://www.googleapis.com/oauth2/v3/certs")
 	store.client = mockedClient
 	for i := 0; i < 2; i++ {
-		key := store.Get("https://accounts.google.com", "invalid")
+		key, _ := store.Get("https://accounts.google.com", "invalid")
 		assert.Nil(t, key)
 		require.Len(t, store.keys, 0)
 	}
