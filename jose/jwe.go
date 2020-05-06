@@ -29,6 +29,7 @@ import (
 
 // JweCustomHeaderFields custom JWE defined fields.
 type JweCustomHeaderFields struct {
+	// Other AAD for transporting AAD around with the JWE...
 	OtherAad *Blob `json:"_thales_aad,omitempty"`
 }
 

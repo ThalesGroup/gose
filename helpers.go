@@ -555,3 +555,11 @@ func LoadSymmetricAEAD(jwk jose.Jwk, required []jose.KeyOps) (a cipher.AEAD, err
 		return
 	}
 }
+
+
+// JwtToString returns the full string of the Jwt or error
+func JwtToString(jwt jose.Jwt) (full string, err error) {
+
+
+	return
+}

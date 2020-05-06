@@ -32,6 +32,8 @@ type JweDirectDecryptorImpl struct {
 
 // Decrypt and verify the given JWE returning both the plaintext and AAD.
 func (decryptor *JweDirectDecryptorImpl) Decrypt(jwe string) (plaintext, aad []byte, err error) {
+
+
 	var jweStruct jose.Jwe
 	if err = jweStruct.Unmarshal(jwe); err != nil {
 		return

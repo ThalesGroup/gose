@@ -27,12 +27,12 @@ import (
 	"github.com/ThalesIgnite/gose/jose"
 )
 
-//JwtVerifierImpl implements the JWT Verification API
+// JwtVerifierImpl implements the JWT Verification API
 type JwtVerifierImpl struct {
 	store TrustStore
 }
 
-//Verify the jwt and audience is valid
+// Verify the jwt and audience is valid
 func (verifier *JwtVerifierImpl) Verify(jwt string, audience []string) (kid string, claims *jose.JwtClaims, err error) {
 	var token jose.Jwt
 	var signed string
@@ -66,15 +66,16 @@ func (verifier *JwtVerifierImpl) Verify(jwt string, audience []string) (kid stri
 
 	// Though optional in the JWT spec we always require a Key ID to be present
 	// to resist various known attacks.
-	if len(token.Header.Kid) == 0 {
-		err = ErrInvalidKid
-		return
-	}
+	// if len(token.Header.Kid) == 0 {
+	// 	err = ErrInvalidKid
+	// 	return
+	// }
 	key := verifier.store.Get(token.Claims.Issuer, token.Header.Kid)
 	if key == nil {
 		err = ErrUnknownKey
 		return
 	}
+
 	// Ensure algorithms match!
 	if key.Algorithm() != token.Header.Alg {
 		err = ErrInvalidAlgorithm
@@ -86,11 +87,12 @@ func (verifier *JwtVerifierImpl) Verify(jwt string, audience []string) (kid stri
 		return
 	}
 	kid = key.Kid()
+
 	claims = &token.Claims
 	return
 }
 
-//NewJwtVerifier creates a JWT Verifier for a given truststore
+// NewJwtVerifier creates a JWT Verifier for a given truststore
 func NewJwtVerifier(ks TrustStore) *JwtVerifierImpl {
 	return &JwtVerifierImpl{store: ks}
 }

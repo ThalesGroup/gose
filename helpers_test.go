@@ -350,7 +350,6 @@ func TestEcBitsToAlg(t *testing.T) {
 			input:    1024,
 			expected: jose.Alg("Unsupported"),
 		},
-
 	}
 	// Act + Assert
 	for _, test := range testCases {
@@ -373,4 +372,41 @@ func TestJwkToString(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.Regexp(t, regexp.MustCompile(`{"key_ops":\["verify\"\],"alg":"PS256","kid":"[a-f0-9]{64}","n":"[a-zA-Z0-9-_]+","e":"[0-9A-Z]{4}","kty":"RSA"}`), jwkString)
+}
+
+func TestJwtToString(t *testing.T) {
+	type args struct {
+		jwt jose.Jwt
+	}
+	tests := []struct {
+		name     string
+		args     args
+		wantFull string
+		wantErr  bool
+	}{
+		{
+			name:     "ok",
+			args:     args{
+				jwt:  jose.Jwt{
+					Header:    jose.JwsHeader{},
+					Claims:    jose.JwtClaims{},
+					Signature: nil,
+				},
+			},
+			wantFull: "",
+			wantErr:  false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotFull, err := JwtToString(tt.args.jwt)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("JwtToString() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if gotFull != tt.wantFull {
+				t.Errorf("JwtToString() gotFull = %v, want %v", gotFull, tt.wantFull)
+			}
+		})
+	}
 }
