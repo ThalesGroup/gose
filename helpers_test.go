@@ -385,9 +385,9 @@ func TestJwtToString(t *testing.T) {
 		wantErr  bool
 	}{
 		{
-			name:     "ok",
-			args:     args{
-				jwt:  jose.Jwt{
+			name: "ok",
+			args: args{
+				jwt: jose.Jwt{
 					Header:    jose.JwsHeader{},
 					Claims:    jose.JwtClaims{},
 					Signature: nil,

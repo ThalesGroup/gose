@@ -80,9 +80,9 @@ func (store *MockedTrustKeyStore) Remove(issuer, kid string) bool {
 	return args.Bool(0)
 }
 
-func (store *MockedTrustKeyStore) Get(issuer, kid string) VerificationKey {
+func (store *MockedTrustKeyStore) Get(issuer, kid string) (VerificationKey, error) {
 	args := store.Called(issuer, kid)
-	return args.Get(0).(VerificationKey)
+	return args.Get(0).(VerificationKey), args.Error(1)
 }
 
 type MockedVerificationKey struct {
@@ -145,7 +145,7 @@ func TestJwtVerifierImpl_Verify(t *testing.T) {
 	key.On("Algorithm").Return(rsaValidJwtAlg)
 	key.On("Kid").Return(validJwtKid)
 	ks := MockedTrustKeyStore{}
-	ks.On("Get", mock.Anything, validJwtKid).Return(&key)
+	ks.On("Get", mock.Anything, validJwtKid).Return(&key, nil)
 	verifier := NewJwtVerifier(&ks)
 
 	// Act
@@ -175,7 +175,7 @@ func TestJwtVerifierImpl_Verify_FailsWithInvalidSignature(t *testing.T) {
 	key.On("Algorithm").Return(rsaValidJwtAlg)
 	ks := MockedTrustKeyStore{}
 	ks.On("Verifier", validJwtKid).Return(&key)
-	ks.On("Get", mock.Anything, validJwtKid).Return(&key)
+	ks.On("Get", mock.Anything, validJwtKid).Return(&key, nil)
 	verifier := NewJwtVerifier(&ks)
 
 	// Act
@@ -198,7 +198,7 @@ func TestJwtVerifierImpl_Verify_FailsWithNbfViolation(t *testing.T) {
 	key.On("Algorithm").Return(rsaValidJwtAlg)
 	ks := MockedTrustKeyStore{}
 	ks.On("Verifier", validJwtKid).Return(&key)
-	ks.On("Get", mock.Anything, validJwtKid).Return(&key)
+	ks.On("Get", mock.Anything, validJwtKid).Return(&key, nil)
 	verifier := NewJwtVerifier(&ks)
 
 	// Act
@@ -222,7 +222,7 @@ func TestJwtVerifierImpl_Verify_FailsWithExpViolation(t *testing.T) {
 	key.On("Algorithm").Return(rsaValidJwtAlg)
 	ks := MockedTrustKeyStore{}
 	ks.On("Verifier", validJwtKid).Return(&key)
-	ks.On("Get", mock.Anything, validJwtKid).Return(&key)
+	ks.On("Get", mock.Anything, validJwtKid).Return(&key, nil)
 	verifier := NewJwtVerifier(&ks)
 
 	// Act
@@ -256,7 +256,7 @@ func TestJwtVerifierImpl_Verify_FailsWithNoKnownAudience(t *testing.T) {
 	key.On("Algorithm").Return(rsaValidJwtAlg)
 	ks := MockedTrustKeyStore{}
 	ks.On("Verifier", validJwtKid).Return(&key)
-	ks.On("Get", mock.Anything, validJwtKid).Return(&key)
+	ks.On("Get", mock.Anything, validJwtKid).Return(&key, nil)
 	verifier := NewJwtVerifier(&ks)
 
 	for _, test := range testcases {

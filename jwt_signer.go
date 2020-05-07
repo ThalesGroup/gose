@@ -31,6 +31,7 @@ import (
 )
 
 var _ JwtSigner = (*JwtSignerImpl)(nil)
+
 //JwtSignerImpl JWT implementation
 type JwtSignerImpl struct {
 	key    SigningKey

@@ -70,7 +70,8 @@ func (verifier *JwtVerifierImpl) Verify(jwt string, audience []string) (kid stri
 	// 	err = ErrInvalidKid
 	// 	return
 	// }
-	key := verifier.store.Get(token.Claims.Issuer, token.Header.Kid)
+	var key VerificationKey
+	key, err = verifier.store.Get(token.Claims.Issuer, token.Header.Kid)
 	if key == nil {
 		err = ErrUnknownKey
 		return

@@ -65,5 +65,5 @@ var (
 	ErrInvalidKeySize                    error = &InvalidFormat{"invalid jwk size"}
 	ErrInvalidAlgorithm                  error = &InvalidFormat{"invalid algorithm"}
 	ErrInvalidEncryption                 error = &InvalidFormat{"invalid encryption"}
-	ErrZipCompressionNotSupported error = &InvalidFormat{"zip compression not supported"}
+	ErrZipCompressionNotSupported        error = &InvalidFormat{"zip compression not supported"}
 )

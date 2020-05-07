@@ -29,8 +29,8 @@ import (
 	"crypto/rand"
 	"crypto/x509"
 	"encoding/pem"
-	"math/big"
 	"github.com/ThalesIgnite/gose/jose"
+	"math/big"
 )
 
 //ECDSAOptions Implements crypto.SignerOpts
