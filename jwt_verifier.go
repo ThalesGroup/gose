@@ -70,24 +70,26 @@ func (verifier *JwtVerifierImpl) Verify(jwt string, audience []string) (kid stri
 	// 	err = ErrInvalidKid
 	// 	return
 	// }
-	var key VerificationKey
-	key, err = verifier.store.Get(token.Claims.Issuer, token.Header.Kid)
-	if key == nil {
-		err = ErrUnknownKey
-		return
-	}
+	if len(token.Header.Kid) > 0 {
+		var key VerificationKey
+		key, err = verifier.store.Get(token.Claims.Issuer, token.Header.Kid)
+		if key == nil {
+			err = ErrUnknownKey
+			return
+		}
 
-	// Ensure algorithms match!
-	if key.Algorithm() != token.Header.Alg {
-		err = ErrInvalidAlgorithm
-		return
-	}
+		// Ensure algorithms match!
+		if key.Algorithm() != token.Header.Alg {
+			err = ErrInvalidAlgorithm
+			return
+		}
 
-	if !key.Verify(jose.KeyOpsVerify, []byte(signed), token.Signature) {
-		err = ErrInvalidSignature
-		return
+		if !key.Verify(jose.KeyOpsVerify, []byte(signed), token.Signature) {
+			err = ErrInvalidSignature
+			return
+		}
+		kid = key.Kid()
 	}
-	kid = key.Kid()
 
 	claims = &token.Claims
 	return
