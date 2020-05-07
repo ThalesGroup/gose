@@ -22,6 +22,7 @@
 package gose
 
 import (
+	"fmt"
 	"io/ioutil"
 
 	"bytes"
@@ -67,17 +68,18 @@ func (store *TrustKeyStoreImpl) Remove(issuer, kid string) bool {
 }
 
 //Get get verification jwk for issuer and jwk id
-func (store *TrustKeyStoreImpl) Get(issuer, kid string) VerificationKey {
+func (store *TrustKeyStoreImpl) Get(issuer, kid string) (vk VerificationKey, err error) {
 	store.mtx.Lock()
 	defer store.mtx.Unlock()
 	if keySet, ok := store.keys[issuer]; ok {
 		if jwk, ok := keySet[kid]; ok {
 			if key, err := NewVerificationKey(jwk); err == nil {
-				return key
+				return key, err
 			}
 		}
 	}
-	return nil
+	err = fmt.Errorf("error encountered retrieving key: %v", err)
+	return nil, err
 }
 
 //NewTrustKeyStore loads truststore for map of jose.JWK

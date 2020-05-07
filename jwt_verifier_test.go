@@ -80,9 +80,9 @@ func (store *MockedTrustKeyStore) Remove(issuer, kid string) bool {
 	return args.Bool(0)
 }
 
-func (store *MockedTrustKeyStore) Get(issuer, kid string) VerificationKey {
+func (store *MockedTrustKeyStore) Get(issuer, kid string) (VerificationKey, error) {
 	args := store.Called(issuer, kid)
-	return args.Get(0).(VerificationKey)
+	return args.Get(0).(VerificationKey), args.Error(1)
 }
 
 type MockedVerificationKey struct {

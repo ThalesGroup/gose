@@ -122,7 +122,7 @@ func (g *AuthenticatedEncryptionKeyGenerator) Generate(alg jose.Alg, operations 
 		return nil, nil, err
 	}
 	jwk.SetOps(operations)
-	cryptor, err :=  NewAesGcmCryptorFromJwk(jwk, operations)
+	cryptor, err := NewAesGcmCryptorFromJwk(jwk, operations)
 	if err != nil {
 		return nil, nil, err
 	}

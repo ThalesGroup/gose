@@ -58,7 +58,6 @@ type MarshalableKey interface {
 	Marshal() (string, error)
 }
 
-
 // CertifiableKey is an interface representing a key that can have an associated certificate and PEM representation.
 type CertifiableKey interface {
 	// MarshalPem marshals a key to it's PEM representation.
@@ -123,7 +122,7 @@ type JwtVerifier interface {
 type TrustStore interface {
 	Add(issuer string, jwk jose.Jwk) error
 	Remove(issuer, kid string) bool
-	Get(issuer, kid string) VerificationKey
+	Get(issuer, kid string) (vk VerificationKey, err error)
 }
 
 // JweEncryptor implements encryption of arbitary plaintext into a compact JWE as defined by https://tools.ietf.org/html/rfc7516.

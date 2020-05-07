@@ -35,11 +35,11 @@ var validCryptorOpts = []jose.KeyOps{jose.KeyOpsEncrypt, jose.KeyOpsDecrypt}
 
 // AesGcmCryptor provides AES GCM encryption and decryption functions.
 type AesGcmCryptor struct {
-	kid string
-	alg jose.Alg
+	kid  string
+	alg  jose.Alg
 	aead cipher.AEAD
 	opts []jose.KeyOps
-	rng io.Reader
+	rng  io.Reader
 }
 
 // Kid the key identity
@@ -112,9 +112,9 @@ func NewAesGcmCryptorFromJwk(jwk jose.Jwk, required []jose.KeyOps) (Authenticate
 	}
 	return &AesGcmCryptor{
 		kid:  jwk.Kid(),
-		alg: jwk.Alg(),
+		alg:  jwk.Alg(),
 		aead: aead,
-		rng: rand.Reader,
+		rng:  rand.Reader,
 		opts: jwk.Ops(),
 	}, nil
 }
@@ -123,9 +123,9 @@ func NewAesGcmCryptorFromJwk(jwk jose.Jwk, required []jose.KeyOps) (Authenticate
 func NewAesGcmCryptor(aead cipher.AEAD, rng io.Reader, kid string, alg jose.Alg, opeartions []jose.KeyOps) (AuthenticatedEncryptionKey, error) {
 	return &AesGcmCryptor{
 		kid:  kid,
-		alg: alg,
+		alg:  alg,
 		aead: aead,
-		rng: rng,
+		rng:  rng,
 		opts: opeartions,
 	}, nil
 }
