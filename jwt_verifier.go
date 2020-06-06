@@ -22,6 +22,7 @@
 package gose
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/ThalesIgnite/gose/jose"
@@ -40,6 +41,7 @@ func (verifier *JwtVerifierImpl) Verify(jwt string, audience []string) (kid stri
 		return
 	}
 	now := time.Now().Unix()
+	seen := []string{}
 	if token.Claims.NotBefore > now {
 		err = ErrInvalidJwtTimeframe
 		return
@@ -49,18 +51,21 @@ func (verifier *JwtVerifierImpl) Verify(jwt string, audience []string) (kid stri
 		return
 	}
 	if len(token.Claims.Audiences.Aud) == 0 || len(audience) == 0 {
-		err = ErrNoExpectedAudience
+		err = &InvalidFormat{fmt.Sprintf("no expected audience | expected %s | seen %s", audience, seen)}
 		return
 	}
+
+	// For debugging you may want to see the details of the expected and observed audiences
 	// Check at least 1 audience exists
 	found := false
 	for _, candidate := range audience {
 		for _, aud := range token.Claims.Audiences.Aud {
+			seen = append(seen, aud)
 			found = found || candidate == aud
 		}
 	}
 	if !found {
-		err = ErrNoExpectedAudience
+		err = &InvalidFormat{fmt.Sprintf("no expected audience | expected %s | seen %s", audience, seen)}
 		return
 	}
 

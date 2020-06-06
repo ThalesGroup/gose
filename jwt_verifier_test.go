@@ -23,16 +23,18 @@ package gose
 
 import (
 	"encoding/base64"
+	"fmt"
 	"testing"
 	"time"
 
 	"crypto/x509"
 
 	"bou.ke/monkey"
-	"github.com/ThalesIgnite/gose/jose"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+
+	"github.com/ThalesIgnite/gose/jose"
 )
 
 const (
@@ -237,12 +239,15 @@ func TestJwtVerifierImpl_Verify_FailsWithExpViolation(t *testing.T) {
 func TestJwtVerifierImpl_Verify_FailsWithNoKnownAudience(t *testing.T) {
 	testcases := []struct {
 		audiences []string
+		seen      []string
 	}{
 		{
 			audiences: []string{"unknown"},
+			seen:      []string{"test"},
 		},
 		{
 			audiences: []string{},
+			seen:      []string{},
 		},
 	}
 	// Setup
@@ -264,6 +269,7 @@ func TestJwtVerifierImpl_Verify_FailsWithNoKnownAudience(t *testing.T) {
 		_, _, err := verifier.Verify(rsaValidJwt, test.audiences)
 
 		// Assert
-		assert.Equal(t, ErrNoExpectedAudience, err)
+		ee := &InvalidFormat{fmt.Sprintf("no expected audience | expected %s | seen %s", test.audiences, test.seen)}
+		assert.Equal(t, ee, err)
 	}
 }
