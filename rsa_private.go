@@ -11,11 +11,13 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// RsaPrivateKeyImpl provides software based signing and decryption capabilities for use during JWT and JWE processing.
 type RsaPrivateKeyImpl struct {
 	jwk   jose.Jwk
 	key   *rsa.PrivateKey
 }
 
+// Key returns the underlying crypto.Signer implementation.
 func (rsaKey *RsaPrivateKeyImpl) Key() crypto.Signer {
 	return rsaKey.key
 }
@@ -85,6 +87,7 @@ func (rsaKey *RsaPrivateKeyImpl) Certificates() []*x509.Certificate {
 	return rsaKey.jwk.X5C()
 }
 
+// Decrypt decrypt the given ciphertext returning the derived plaintext.
 func (rsaKey *RsaPrivateKeyImpl) Decrypt(requested jose.KeyOps, ciphertext []byte) ([]byte, error) {
 	ops := intersection(validDecryptionOps, rsaKey.jwk.Ops())
 	if !isSubset(ops, []jose.KeyOps{requested}) {
@@ -115,6 +118,7 @@ func (rsaKey *RsaPrivateKeyImpl) Encryptor() (AsymmetricEncryptionKey, error) {
 	return rsaKey.publicKey()
 }
 
+// NewRsaDecryptionKey returns a new instance of RsaPrivateKeyImpl configured using he given JWK.
 func NewRsaDecryptionKey(jwk jose.Jwk) (*RsaPrivateKeyImpl, error) {
 	signer, err := LoadPrivateKey(jwk, []jose.KeyOps{jose.KeyOpsDecrypt})
 	if err != nil {

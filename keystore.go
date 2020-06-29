@@ -74,9 +74,8 @@ func (store *TrustKeyStoreImpl) Get(issuer, kid string) (vk VerificationKey, err
 		if jwk, ok := keySet[kid]; ok {
 			if key, err := NewVerificationKey(jwk); err == nil {
 				return key, nil
-			} else {
-				return nil, err
 			}
+			return nil, err
 		}
 	}
 	return nil, ErrUnknownKey

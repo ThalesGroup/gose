@@ -5,10 +5,12 @@ import (
 	"github.com/ThalesIgnite/gose"
 )
 
+// AsymmetricDecryptionKeyStore implements the AsymmetricDecryptionKeyStore interface providing key lookup
 type AsymmetricDecryptionKeyStore struct {
 	ctx *crypto11.Context
 }
 
+// Get returns gose.AsymmetricDecryptionKey which match the given key ID.
 func (a *AsymmetricDecryptionKeyStore) Get(kid string) (k gose.AsymmetricDecryptionKey, err error) {
 	keyPair, err := a.ctx.FindKeyPair([]byte(kid), nil)
 	if err != nil {
@@ -25,7 +27,8 @@ func (a *AsymmetricDecryptionKeyStore) Get(kid string) (k gose.AsymmetricDecrypt
 	}, nil
 }
 
-func NewAsymmetricDecryptionKeyStore(ctx *crypto11.Context) (*AsymmetricDecryptionKeyStore) {
+// NewAsymmetricDecryptionKeyStore creates an instance of AsymmetricDecryptionKeyStore.
+func NewAsymmetricDecryptionKeyStore(ctx *crypto11.Context) *AsymmetricDecryptionKeyStore {
 	return &AsymmetricDecryptionKeyStore {
 		ctx: ctx,
 	}

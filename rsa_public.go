@@ -94,6 +94,7 @@ func (k *RsaPublicKeyImpl) Verify(operation jose.KeyOps, data []byte, signature 
 	return err == nil
 }
 
+// Encrypt encrypts the given plaintext returning the derived ciphertext.
 func (k *RsaPublicKeyImpl) Encrypt(requested jose.KeyOps, data []byte) ([]byte, error) {
 	/* Verify the operation being requested is supported by the jwk. */
 	ops := intersection(validEncryptionOps, k.jwk.Ops())

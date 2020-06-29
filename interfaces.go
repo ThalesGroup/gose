@@ -100,6 +100,7 @@ type AsymmetricEncryptionKey interface {
 	Encrypt(jose.KeyOps, []byte) ([]byte, error)
 }
 
+// AsymmetricDecryptionKey provides asymmetric decryption (private key) capabilities.
 type AsymmetricDecryptionKey interface {
 	Key
 	Algorithmed

@@ -6,11 +6,12 @@ import (
 	"github.com/ThalesIgnite/gose/jose"
 )
 
-// JweRsaKeyEncryptionEncryptorImpl implements RSA Key Encryption CEK mode.
+// JweRsaKeyEncryptionDecryptorImpl implements RSA Key Encryption CEK mode.
 type JweRsaKeyEncryptionDecryptorImpl struct {
 	keystore AsymmetricDecryptionKeyStore
 }
 
+// Decrypt decrypts the given JWE returning the contained plaintext and any additional authentic associated data.
 func (d *JweRsaKeyEncryptionDecryptorImpl) Decrypt(jwe string) (plaintext, aad []byte, err error) {
 	var jweStruct jose.Jwe
 	if err = jweStruct.Unmarshal(jwe); err != nil {
@@ -77,6 +78,7 @@ func (d *JweRsaKeyEncryptionDecryptorImpl) Decrypt(jwe string) (plaintext, aad [
 	return
 }
 
+// NewJweRsaKeyEncryptionDecryptorImpl creates an instance of JweRsaKeyEncryptionDecryptorImpl with the given keystore.
 func NewJweRsaKeyEncryptionDecryptorImpl(keystore AsymmetricDecryptionKeyStore) *JweRsaKeyEncryptionDecryptorImpl {
 	return &JweRsaKeyEncryptionDecryptorImpl{
 		keystore: keystore,

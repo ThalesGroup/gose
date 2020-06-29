@@ -14,6 +14,8 @@ type JweRsaKeyEncryptionEncryptorImpl struct {
 	cekAlg jose.Alg
 }
 
+// Encrypt encrypts the given plaintext into a compact JWE. Optional authenticated data can be included which is appended
+// to the JWE protected header.
 func (e *JweRsaKeyEncryptionEncryptorImpl) Encrypt(plaintext, aad []byte) (string, error) {
 	keyGenerator := &AuthenticatedEncryptionKeyGenerator{}
 	cek, jwk, err := keyGenerator.Generate(e.cekAlg, []jose.KeyOps{jose.KeyOpsDecrypt, jose.KeyOpsEncrypt})
@@ -64,6 +66,8 @@ func (e *JweRsaKeyEncryptionEncryptorImpl) Encrypt(plaintext, aad []byte) (strin
 	return jwe.Marshal(), nil
 }
 
+// NewJweRsaKeyEncryptionEncryptorImpl returns an instance of JweRsaKeyEncryptionEncryptorImpl configured with the given
+// JWK.
 func NewJweRsaKeyEncryptionEncryptorImpl(recipient jose.Jwk, contentEncryptionAlg jose.Alg) (*JweRsaKeyEncryptionEncryptorImpl, error) {
 	if _, ok := authenticatedEncryptionAlgs[contentEncryptionAlg]; !ok {
 		return nil, ErrInvalidAlgorithm
