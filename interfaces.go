@@ -91,6 +91,25 @@ type VerificationKey interface {
 	Verify(operation jose.KeyOps, data []byte, signature []byte) bool
 }
 
+// AsymmetricEncryptionKey implements encryption using an asymmetric key.
+type AsymmetricEncryptionKey interface {
+	Key
+	MarshalableKey
+	CertifiableKey
+	Algorithmed
+	Encrypt(jose.KeyOps, []byte) ([]byte, error)
+}
+
+type AsymmetricDecryptionKey interface {
+	Key
+	MarshalableKey
+	CertifiableKey
+	Algorithmed
+	Decrypt(jose.KeyOps, []byte) ([]byte, error)
+	// Encryptor get the matching encryption key.
+	Encryptor() (AsymmetricEncryptionKey, error)
+}
+
 // AuthenticatedEncryptionKey implements authenticated encryption and decryption.
 type AuthenticatedEncryptionKey interface {
 	Key
@@ -127,7 +146,7 @@ type TrustStore interface {
 
 // JweEncryptor implements encryption of arbitary plaintext into a compact JWE as defined by https://tools.ietf.org/html/rfc7516.
 type JweEncryptor interface {
-	Encrypt(plaintext, add []byte) (string, error)
+	Encrypt(plaintext, aad []byte) (string, error)
 }
 
 // JweDecryptor implements decryption and verification of a given ciphertext and aad to a plaintext as defined by https://tools.ietf.org/html/rfc7516.

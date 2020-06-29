@@ -35,18 +35,14 @@ import (
 // ECVerificationKeyImpl implements the ECDSA Verification Logic
 type ECVerificationKeyImpl struct {
 	key   ecdsa.PublicKey
-	ops   []jose.KeyOps
-	opts  *ECDSAOptions
-	alg   jose.Alg
-	id    string
-	certs []*x509.Certificate
+	jwk jose.Jwk
 }
 
 const ecPublicKeyPemType = "EC PUBLIC KEY"
 
 // Algorithm return algorithm
 func (verifier *ECVerificationKeyImpl) Algorithm() jose.Alg {
-	return verifier.alg
+	return verifier.jwk.Alg()
 }
 
 // Verify signed data matches signature and jwk
@@ -54,7 +50,7 @@ func (verifier *ECVerificationKeyImpl) Algorithm() jose.Alg {
 // The serialization format is chosen instead to match that defined in the JSON Web Signature spec
 // https://tools.ietf.org/html/rfc7515#appendix-A.3.1.
 func (verifier *ECVerificationKeyImpl) Verify(operation jose.KeyOps, data []byte, signature []byte) bool {
-	ops := intersection(validVerificationOps, verifier.ops)
+	ops := intersection(validVerificationOps, verifier.jwk.Ops())
 	if !isSubset(ops, []jose.KeyOps{operation}) {
 		return false
 	}
@@ -71,10 +67,10 @@ func (verifier *ECVerificationKeyImpl) Verify(operation jose.KeyOps, data []byte
 	s := big.NewInt(0).SetBytes(signature[keySize:])
 
 	// Create hasher
-	if !verifier.opts.Hash.Available() {
+	if !opts.Hash.Available() {
 		return false
 	}
-	hasher := verifier.opts.Hash.New()
+	hasher := opts.HashFunc().New()
 	if _, err := hasher.Write([]byte(data)); err != nil {
 		logrus.Panicf("%s", err)
 	}
@@ -85,21 +81,17 @@ func (verifier *ECVerificationKeyImpl) Verify(operation jose.KeyOps, data []byte
 
 // Certificates returns the certs for this key
 func (verifier *ECVerificationKeyImpl) Certificates() []*x509.Certificate {
-	return verifier.certs
+	return verifier.jwk.X5C()
 }
 
 // Jwk returns the key as a jose.JWK type, or error
 func (verifier *ECVerificationKeyImpl) Jwk() (jose.Jwk, error) {
-	return JwkFromPublicKey(&verifier.key, verifier.ops, verifier.certs)
+	return verifier.jwk, nil
 }
 
 // Marshal marshals the key into a compact JWK string, or error
 func (verifier *ECVerificationKeyImpl) Marshal() (string, error) {
-	jwk, err := JwkFromPublicKey(&verifier.key, verifier.ops, verifier.certs)
-	if err != nil {
-		return "", err
-	}
-	return JwkToString(jwk)
+	return JwkToString(verifier.jwk)
 }
 
 // MarshalPem marshals the key as a PEM formatted string, or error
@@ -122,5 +114,5 @@ func (verifier *ECVerificationKeyImpl) MarshalPem() (string, error) {
 
 //Kid returns the key's id
 func (verifier *ECVerificationKeyImpl) Kid() string {
-	return verifier.id
+	return verifier.jwk.Kid()
 }

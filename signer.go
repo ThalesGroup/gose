@@ -58,6 +58,14 @@ var validSignerOps = []jose.KeyOps{
 	jose.KeyOpsSign,
 }
 
+var validEncryptionOps = []jose.KeyOps{
+	jose.KeyOpsEncrypt,
+}
+
+var validDecryptionOps = []jose.KeyOps{
+	jose.KeyOpsDecrypt,
+}
+
 const rsaPrivateKeyPemType = "RSA PRIVATE KEY"
 
 //NewSigningKey returns a SignignKey for a jose.JWK with required jwk operations
