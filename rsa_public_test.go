@@ -24,6 +24,8 @@ package gose
 import (
 	"bytes"
 	"crypto"
+	"crypto/ecdsa"
+	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
@@ -37,6 +39,27 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestNewRsaPublicKeyImpl(t *testing.T) {
+	require.NotNil(t, rand.Reader)
+	rsaKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
+	require.Nil(t, rsaKey.Validate())
+	jwk, err := JwkFromPrivateKey(rsaKey, []jose.KeyOps{jose.KeyOpsDecrypt}, nil)
+	require.NoError(t, err)
+	k, err := NewRsaDecryptionKey(jwk)
+	require.NoError(t, err)
+	assert.NotNil(t, k)
+}
+
+func TestNewRsaPublicKeyImpl_FailsWithInvalidKeyType(t *testing.T) {
+	require.NotNil(t, rand.Reader)
+	ecdsaKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	require.NoError(t, err)
+	jwk, err := JwkFromPublicKey(&ecdsaKey.PublicKey, []jose.KeyOps{jose.KeyOpsVerify}, nil)
+	require.NoError(t, err)
+	_, err = NewRsaPublicKeyImpl(jwk)
+	require.Equal(t, ErrInvalidKeyType, err)
+}
 
 func TestNewRsaPublicMarshalSucceeds(t *testing.T) {
 	// Setup

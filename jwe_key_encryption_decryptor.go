@@ -8,7 +8,7 @@ import (
 
 // JweRsaKeyEncryptionEncryptorImpl implements RSA Key Encryption CEK mode.
 type JweRsaKeyEncryptionDecryptorImpl struct {
-	keystore map[string]AsymmetricDecryptionKey
+	keystore AsymmetricDecryptionKeyStore
 }
 
 func (d *JweRsaKeyEncryptionDecryptorImpl) Decrypt(jwe string) (plaintext, aad []byte, err error) {
@@ -22,19 +22,10 @@ func (d *JweRsaKeyEncryptionDecryptorImpl) Decrypt(jwe string) (plaintext, aad [
 		err = ErrZipCompressionNotSupported
 		return
 	}
-	// TODO: Remove
-	jweStruct.Header.Kid = "1"
-
-	// If there's no key ID specified fail.
-	if len(jweStruct.Header.Kid) == 0 {
-		err = ErrInvalidKid
-		return
-	}
 
 	var key AsymmetricDecryptionKey
-	var exists bool
-	if key, exists = d.keystore[jweStruct.Header.Kid]; !exists {
-		err = ErrUnknownKey
+	key, err = d.keystore.Get(jweStruct.Header.Kid)
+	if err != nil {
 		return
 	}
 
@@ -86,7 +77,7 @@ func (d *JweRsaKeyEncryptionDecryptorImpl) Decrypt(jwe string) (plaintext, aad [
 	return
 }
 
-func NewJweRsaKeyEncryptionDecryptorImpl(keystore map[string]AsymmetricDecryptionKey) *JweRsaKeyEncryptionDecryptorImpl {
+func NewJweRsaKeyEncryptionDecryptorImpl(keystore AsymmetricDecryptionKeyStore) *JweRsaKeyEncryptionDecryptorImpl {
 	return &JweRsaKeyEncryptionDecryptorImpl{
 		keystore: keystore,
 	}

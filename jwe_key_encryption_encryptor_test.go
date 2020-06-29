@@ -3,6 +3,7 @@ package gose
 import (
 	"github.com/ThalesIgnite/gose/jose"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"testing"
 )
 
@@ -12,9 +13,25 @@ func TestNewJweRsaKeyEncryptionEncryptorImpl_UnsupportedContentEncryptionAlg(t *
 }
 
 func TestNewJweRsaKeyEncryptionEncryptorImpl_InvalidJwk(t *testing.T) {
-	t.Fail()
+	generator := &ECDSASigningKeyGenerator{}
+	k, err := generator.Generate(jose.AlgES256, []jose.KeyOps{jose.KeyOpsSign, jose.KeyOpsDecrypt})
+	require.NoError(t, err)
+	verifier, err := k.Verifier()
+	require.NoError(t, err)
+	jwk, err := verifier.Jwk()
+	require.NoError(t, err)
+	_, err = NewJweRsaKeyEncryptionEncryptorImpl(jwk, jose.AlgA256GCM)
+	assert.Equal(t, ErrInvalidKeyType, err)
 }
 
 func TestNewJweRsaKeyEncryptionEncryptorImpl_InvalidKeyOps(t *testing.T) {
-	t.Fail()
+	generator := &RsaKeyDecryptionKeyGenerator{}
+	k, err := generator.Generate(jose.AlgRSAOAEP, 2048, []jose.KeyOps{jose.KeyOpsDecrypt})
+	require.NoError(t, err)
+	jwk, err := k.Jwk()
+	require.NoError(t, err)
+	jwk.SetOps(nil)
+	_, err = NewJweRsaKeyEncryptionEncryptorImpl(jwk, jose.AlgA256GCM)
+	assert.Equal(t, ErrInvalidOperations, err)
+
 }

@@ -68,7 +68,7 @@ func NewJweRsaKeyEncryptionEncryptorImpl(recipient jose.Jwk, contentEncryptionAl
 	if _, ok := authenticatedEncryptionAlgs[contentEncryptionAlg]; !ok {
 		return nil, ErrInvalidAlgorithm
 	}
-	if !isSubset([]jose.KeyOps{jose.KeyOpsEncrypt}, recipient.Ops())  {
+	if !isSubset(recipient.Ops(), []jose.KeyOps{jose.KeyOpsEncrypt})  {
 		return nil, ErrInvalidOperations
 	}
 	kek, err := LoadPublicKey(recipient, validEncryptionOpts)

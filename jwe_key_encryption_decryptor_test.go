@@ -38,7 +38,8 @@ func TestJweRsaKeyEncryptionDecryptorImpl_Decrypt_KAT(t *testing.T) {
 	require.NoError(t, err)
 	key, err := NewRsaDecryptionKey(jwk)
 	require.NoError(t, err)
-	store := map[string]AsymmetricDecryptionKey {key.Kid():key}
+	store, err := NewAsymmetricDecryptionKeyStoreImpl(map[string]AsymmetricDecryptionKey {key.Kid():key})
+	require.NoError(t, err)
 	decryptor := NewJweRsaKeyEncryptionDecryptorImpl(store)
 	pt, aad, err := decryptor.Decrypt(oaepJweFromSpec)
 	require.NoError(t, err)
@@ -76,9 +77,9 @@ func TestJweRsaKeyEncryptionDecryptorImpl_RoundTrip(t *testing.T) {
 			require.NoError(t, err)
 			ct, err := encryptor.Encrypt(randData, []byte("aad"))
 			require.NoError(t, err)
-			decryptor := NewJweRsaKeyEncryptionDecryptorImpl(map[string]AsymmetricDecryptionKey {
-				decrytionKey.Kid(): decrytionKey,
-			})
+			store, err := NewAsymmetricDecryptionKeyStoreImpl(map[string]AsymmetricDecryptionKey {decrytionKey.Kid(): decrytionKey})
+			require.NoError(t, err)
+			decryptor := NewJweRsaKeyEncryptionDecryptorImpl(store)
 			pt, aad, err := decryptor.Decrypt(ct)
 			require.NoError(t, err)
 			assert.Equal(t, randData, pt)

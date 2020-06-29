@@ -144,6 +144,11 @@ type TrustStore interface {
 	Get(issuer, kid string) (vk VerificationKey, err error)
 }
 
+// AsymmetricDecryptionKeyStore provides the ability to access asymmetric decryption keys.
+type AsymmetricDecryptionKeyStore interface {
+	Get(kid string) (k AsymmetricDecryptionKey, err error)
+}
+
 // JweEncryptor implements encryption of arbitary plaintext into a compact JWE as defined by https://tools.ietf.org/html/rfc7516.
 type JweEncryptor interface {
 	Encrypt(plaintext, aad []byte) (string, error)

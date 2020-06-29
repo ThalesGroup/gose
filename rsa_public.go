@@ -13,7 +13,7 @@ import (
 
 //RsaPublicKeyImpl implements RSA verification and encryption APIs
 type RsaPublicKeyImpl struct {
-	key   rsa.PublicKey
+	key rsa.PublicKey
 	jwk jose.Jwk
 }
 
@@ -107,4 +107,20 @@ func (k *RsaPublicKeyImpl) Encrypt(requested jose.KeyOps, data []byte) ([]byte, 
 //Certificates for verification key
 func (k *RsaPublicKeyImpl) Certificates() []*x509.Certificate {
 	return k.jwk.X5C()
+}
+
+// NewRsaPublicKeyImpl create a new RsaPublicKeyImpl instance.
+func NewRsaPublicKeyImpl(jwk jose.Jwk) (*RsaPublicKeyImpl, error) {
+	publicKey, err := LoadPublicKey(jwk, nil)
+	if err != nil {
+		return nil, err
+	}
+	rsaKey, ok := publicKey.(rsa.PublicKey)
+	if !ok {
+		return nil, ErrInvalidKeyType
+	}
+	return &RsaPublicKeyImpl{
+		key: rsaKey,
+		jwk: jwk,
+	}, err
 }
