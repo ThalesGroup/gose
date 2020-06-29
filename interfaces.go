@@ -102,8 +102,6 @@ type AsymmetricEncryptionKey interface {
 
 type AsymmetricDecryptionKey interface {
 	Key
-	MarshalableKey
-	CertifiableKey
 	Algorithmed
 	Decrypt(jose.KeyOps, []byte) ([]byte, error)
 	// Encryptor get the matching encryption key.

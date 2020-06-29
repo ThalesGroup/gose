@@ -23,15 +23,3 @@ func TestNewJweRsaKeyEncryptionEncryptorImpl_InvalidJwk(t *testing.T) {
 	_, err = NewJweRsaKeyEncryptionEncryptorImpl(jwk, jose.AlgA256GCM)
 	assert.Equal(t, ErrInvalidKeyType, err)
 }
-
-func TestNewJweRsaKeyEncryptionEncryptorImpl_InvalidKeyOps(t *testing.T) {
-	generator := &RsaKeyDecryptionKeyGenerator{}
-	k, err := generator.Generate(jose.AlgRSAOAEP, 2048, []jose.KeyOps{jose.KeyOpsDecrypt})
-	require.NoError(t, err)
-	jwk, err := k.Jwk()
-	require.NoError(t, err)
-	jwk.SetOps(nil)
-	_, err = NewJweRsaKeyEncryptionEncryptorImpl(jwk, jose.AlgA256GCM)
-	assert.Equal(t, ErrInvalidOperations, err)
-
-}

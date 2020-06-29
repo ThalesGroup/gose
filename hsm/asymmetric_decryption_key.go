@@ -19,16 +19,6 @@ func (a *AsymmetricDecryptionKey) Kid() string {
 	return a.kid
 }
 
-func (a *AsymmetricDecryptionKey) Jwk() (jose.Jwk, error) {
-	// We do not allow the export of private keys from an HSM
-	return nil, gose.ErrUnsupportedKeyType
-}
-
-func (a *AsymmetricDecryptionKey) Marshal() (string, error) {
-	// We do not allow the export of private keys from an HSM
-	return "", gose.ErrUnsupportedKeyType
-}
-
 func (a *AsymmetricDecryptionKey) MarshalPem() (string, error) {
 	// We do not allow the export of private keys from an HSM
 	return "", gose.ErrUnsupportedKeyType
