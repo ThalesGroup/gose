@@ -26,8 +26,8 @@ func (a *AsymmetricDecryptionKey) Certificates() []*x509.Certificate {
 	// TODO: lookup certificates
 	cert, err := a.ctx.FindCertificate([]byte(a.kid), nil, nil)
 	if err != nil {
-		// :thinking:
-		return nil
+		// TODO: return an error via an interface signature change in next major version.
+		panic(err)
 	}
 	return []*x509.Certificate{cert}
 }
