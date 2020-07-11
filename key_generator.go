@@ -33,7 +33,7 @@ import (
 
 const minimumRsaKeySize = 2048 // The minimum RSA key size allowable as defined https://tools.ietf.org/html/rfc7518#section-3.5
 var (
-	rsaAlgs = map[jose.Alg]bool{
+	rsaSigningAlgs = map[jose.Alg]bool{
 		jose.AlgRS256: true,
 		jose.AlgRS384: true,
 		jose.AlgRS512: true,
@@ -51,7 +51,26 @@ var (
 		jose.AlgA192GCM: 24,
 		jose.AlgA256GCM: 32,
 	}
+	rsaEncryptionAlgs = map[jose.Alg]bool{
+		jose.AlgRSAOAEP: true,
+	}
 )
+
+func generateRsaKey(alg jose.Alg, bitLen int, operations []jose.KeyOps) (jose.Jwk, *rsa.PrivateKey, error) {
+	if bitLen < minimumRsaKeySize {
+		return nil, nil, ErrInvalidKeySize
+	}
+	privateKey, err := rsa.GenerateKey(rand.Reader, bitLen)
+	if err != nil {
+		return nil, nil, err
+	}
+	jwk, err := JwkFromPrivateKey(privateKey, operations, []*x509.Certificate{})
+	if err != nil {
+		return nil, nil, err
+	}
+	jwk.SetAlg(alg)
+	return jwk, privateKey, nil
+}
 
 //RsaSigningKeyGenerator handles generating a RSA signing key
 type RsaSigningKeyGenerator struct {
@@ -60,21 +79,13 @@ type RsaSigningKeyGenerator struct {
 //Generate an RSA key using a given algorithm, length, and scope to certain jwk operations.
 func (generator *RsaSigningKeyGenerator) Generate(alg jose.Alg, bitLen int, operations []jose.KeyOps) (SigningKey, error) {
 	/* Generate an RSA signing jwk. */
-	if _, ok := rsaAlgs[alg]; !ok {
+	if _, ok := rsaSigningAlgs[alg]; !ok {
 		return nil, ErrInvalidAlgorithm
 	}
-	if bitLen < minimumRsaKeySize {
-		return nil, ErrInvalidKeySize
-	}
-	privateKey, err := rsa.GenerateKey(rand.Reader, bitLen)
+	jwk, _, err := generateRsaKey(alg, bitLen, operations)
 	if err != nil {
 		return nil, err
 	}
-	jwk, err := JwkFromPrivateKey(privateKey, operations, []*x509.Certificate{})
-	if err != nil {
-		return nil, err
-	}
-	jwk.SetAlg(alg)
 	return NewSigningKey(jwk, operations)
 }
 
@@ -127,4 +138,24 @@ func (g *AuthenticatedEncryptionKeyGenerator) Generate(alg jose.Alg, operations 
 		return nil, nil, err
 	}
 	return cryptor, jwk, nil
+}
+
+//RsaKeyDecryptionKeyGenerator handles generating a RSA encryption keys
+type RsaKeyDecryptionKeyGenerator struct {
+}
+
+//Generate an RSA key using a given algorithm, length, and scope to certain jwk operations.
+func (generator *RsaKeyDecryptionKeyGenerator) Generate(alg jose.Alg, bitLen int, operations []jose.KeyOps) (AsymmetricDecryptionKey, error) {
+	/* Generate an RSA encryption jwk. */
+	if _, ok := rsaEncryptionAlgs[alg]; !ok {
+		return nil, ErrInvalidAlgorithm
+	}
+	jwk, key, err := generateRsaKey(alg, bitLen, operations)
+	if err != nil {
+		return nil, err
+	}
+	return &RsaPrivateKeyImpl{
+		jwk: jwk,
+		key: key,
+	}, nil
 }

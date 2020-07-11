@@ -81,6 +81,8 @@ const (
 	AlgA256GCM Alg = "A256GCM"
 	// AlgDir direct encryption for use with JWEs
 	AlgDir Alg = "dir"
+	// AlgRSAOAEP RSA OAEP Key encryption for use with JWEs
+	AlgRSAOAEP = "RSA-OAEP"
 
 	//CrvP256 NIST P-256
 	CrvP256 Crv = "P-256"

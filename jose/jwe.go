@@ -59,7 +59,7 @@ func (jwe *Jwe) MarshalHeader() (err error) {
 	if headerBytes, err = json.Marshal(jwe.Header); err != nil {
 		return
 	}
-	jwe.MarshalledHeader = headerBytes
+	jwe.MarshalledHeader = []byte(base64.RawURLEncoding.EncodeToString(headerBytes))
 	return
 }
 
@@ -77,8 +77,9 @@ func (jwe *Jwe) Unmarshal(src string) (err error) {
 	if err = json.Unmarshal(jwe.MarshalledHeader, &jwe.Header); err != nil {
 		return
 	}
+	jwe.MarshalledHeader = []byte(parts[0])
 	// JWE Encrypted key can be a zero length key in scenarios such as direct encoding.
-	if len(jwe.EncryptedKey) > 0 {
+	if len(parts[1]) > 0 {
 		if jwe.EncryptedKey, err = base64.RawURLEncoding.DecodeString(parts[1]); err != nil {
 			return
 		}
@@ -98,7 +99,7 @@ func (jwe *Jwe) Unmarshal(src string) (err error) {
 // Marshal marshal a JWE to it's compact representation.
 func (jwe *Jwe) Marshal() string {
 	stringz := []string{
-		base64.RawURLEncoding.EncodeToString(jwe.MarshalledHeader),
+		string(jwe.MarshalledHeader),
 		base64.RawURLEncoding.EncodeToString(jwe.EncryptedKey),
 		base64.RawURLEncoding.EncodeToString(jwe.Iv),
 		base64.RawURLEncoding.EncodeToString(jwe.Ciphertext),

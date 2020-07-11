@@ -99,6 +99,7 @@ func LoadPrivateKey(jwk jose.Jwk, required []jose.KeyOps) (crypto.Signer, error)
 		jose.AlgES256: true,
 		jose.AlgES384: true,
 		jose.AlgES512: true,
+		jose.AlgRSAOAEP: true,
 	}
 
 	if _, ok := privateKeyAlgs[jwk.Alg()]; !ok {
@@ -160,6 +161,7 @@ func LoadPublicKey(jwk jose.Jwk, required []jose.KeyOps) (crypto.PublicKey, erro
 		jose.AlgES256: true,
 		jose.AlgES384: true,
 		jose.AlgES512: true,
+		jose.AlgRSAOAEP: true,
 	}
 	if _, ok := publicKeyAlgs[jwk.Alg()]; !ok {
 		return nil, ErrInvalidKeyType
@@ -480,7 +482,7 @@ var symmetricAlgs = map[jose.Alg]symmetricAlgInfo{
 }
 
 // JwkFromSymmetric converts a byte string to a jose.Jwk, given a particular JWK algorithm.
-func JwkFromSymmetric(key []byte, alg jose.Alg) (jwk jose.Jwk, err error) {
+func JwkFromSymmetric(key []byte, alg jose.Alg) (jwk *jose.OctSecretKey, err error) {
 	// Validity checking & default ops
 	ops := make([]jose.KeyOps, 0, 4)
 	if sai, ok := symmetricAlgs[alg]; ok {
