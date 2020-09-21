@@ -22,8 +22,6 @@
 package gose
 
 import (
-	"encoding/base64"
-	"fmt"
 	"testing"
 	"time"
 
@@ -133,6 +131,7 @@ func TestNewJwtVerifier(t *testing.T) {
 	require.NotNil(t, verifier)
 	assert.Equal(t, &ks, verifier.store)
 }
+
 //
 //func TestJwtVerifierImpl_Verify(t *testing.T) {
 //	// Setup
