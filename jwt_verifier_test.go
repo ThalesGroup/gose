@@ -22,7 +22,6 @@
 package gose
 
 import (
-	"encoding/base64"
 	"fmt"
 	"testing"
 	"time"
