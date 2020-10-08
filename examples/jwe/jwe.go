@@ -33,7 +33,7 @@ var (
 )
 
 const (
-	secretData = "This is a really secret thing"
+	secretData        = "This is a really secret thing"
 	authenticatedData = "This data is authenticated and publicly readable"
 )
 
@@ -57,7 +57,7 @@ func main() {
 	fmt.Printf("Created encryption key JWK: %s\n", marshalled)
 
 	// Create an encryptor using our key.
-	encryptor := gose.NewJweDirectEncryptorImpl(key)
+	encryptor := gose.NewJweDirectEncryptorImpl(key, false)
 
 	// Our encryptor accepts both secret data ti be encrypted as well as additional data to be included in the JWE as an
 	// authenticated and non-repudiable value. The aad value is included in the JWE header in the _thales_aad field.

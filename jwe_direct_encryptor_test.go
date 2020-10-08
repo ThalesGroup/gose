@@ -72,7 +72,7 @@ func (encryptor *authenticatedEncryptionKeyMock) Marshal() (string, error) {
 
 func TestNewJweEncryptorImpl(t *testing.T) {
 	keyMock := &authenticatedEncryptionKeyMock{}
-	encryptor := NewJweDirectEncryptorImpl(keyMock)
+	encryptor := NewJweDirectEncryptorImpl(keyMock, false)
 	assert.NotNil(t, encryptor)
 }
 
@@ -83,7 +83,7 @@ func TestJweDirectEncryptionEncryptorImpl_Encrypt(t *testing.T) {
 	keyMock.On("Algorithm").Return(jose.AlgA256GCM).Once()
 	keyMock.On("Seal", jose.KeyOpsEncrypt, []byte("nonce"), []byte("something"), mock.Anything).Return([]byte("encrypted"), []byte("tag"), nil).Once()
 
-	encryptor := NewJweDirectEncryptorImpl(keyMock)
+	encryptor := NewJweDirectEncryptorImpl(keyMock, false)
 
 	jwe, err := encryptor.Encrypt([]byte("something"), []byte("else"))
 	assert.NoError(t, err)
@@ -105,7 +105,7 @@ func TestExampleJweDirectEncryptionEncryptorImpl_EncryptDecrypt(t *testing.T) {
 	aad := []byte("some_data_to_authenticate")
 
 	// Create a JWE cryptor
-	jweEncryptor := NewJweDirectEncryptorImpl(cryptor)
+	jweEncryptor := NewJweDirectEncryptorImpl(cryptor, false)
 
 	// Now encrypt
 	jwe, err := jweEncryptor.Encrypt(toEncrypt, aad)
