@@ -22,6 +22,7 @@
 package gose
 
 import (
+	"crypto/x509"
 	"math"
 
 	"github.com/ThalesIgnite/gose/jose"
@@ -45,6 +46,26 @@ func NewVerificationKey(jwk jose.Jwk) (VerificationKey, error) {
 	}
 	switch v := jwk.(type) {
 	case *jose.PublicRsaKey:
+		if jwk.Alg() == "" {
+			// fallback to alg from first certificate
+			if certs := jwk.X5C(); len(certs) > 0 {
+				switch certs[0].SignatureAlgorithm {
+				case x509.SHA256WithRSA:
+					jwk.SetAlg(jose.AlgRS256)
+				case x509.SHA384WithRSA:
+					jwk.SetAlg(jose.AlgRS384)
+				case x509.SHA512WithRSA:
+					jwk.SetAlg(jose.AlgRS512)
+				case x509.SHA256WithRSAPSS:
+					jwk.SetAlg(jose.AlgPS256)
+				case x509.SHA384WithRSAPSS:
+					jwk.SetAlg(jose.AlgPS384)
+				case x509.SHA512WithRSAPSS:
+					jwk.SetAlg(jose.AlgPS512)
+				default:
+				}
+			}
+		}
 		if jwk.Alg() == jose.AlgPS256 || jwk.Alg() == jose.AlgPS384 || jwk.Alg() == jose.AlgPS512 ||
 			jwk.Alg() == jose.AlgRS256 || jwk.Alg() == jose.AlgRS384 || jwk.Alg() == jose.AlgRS512 {
 			if v.E.Int().Int64() > math.MaxInt32 {
