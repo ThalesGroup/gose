@@ -24,13 +24,14 @@ package gose
 import (
 	"bytes"
 	"errors"
+	"io/ioutil"
+	"net/http"
+	"testing"
+
 	"github.com/ThalesIgnite/gose/jose"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"io/ioutil"
-	"net/http"
-	"testing"
 )
 
 const (
@@ -79,7 +80,7 @@ func TestJwksTrustStore_Remove(t *testing.T) {
 	assert.False(t, removed)
 }
 
-func TestJwksTrustStore_Get(t *testing.T) {
+func TestJwksTrustStore_GetWithSingleIssuer(t *testing.T) {
 	mockedClient := &httpClientMock{}
 	mockedClient.On("Get", "https://www.googleapis.com/oauth2/v3/certs").Return(
 		&http.Response{
@@ -92,6 +93,23 @@ func TestJwksTrustStore_Get(t *testing.T) {
 	assert.NotNil(t, key)
 	require.Len(t, store.keys, 2)
 	got, _ := store.Get("https://accounts.google.com", "df8d9ee403bcc7185ad51041194bd3433742d9aa")
+	assert.NotNil(t, got)
+	mockedClient.AssertExpectations(t)
+}
+
+func TestJwksTrustStore_GetWithMultipleIssuer(t *testing.T) {
+	mockedClient := &httpClientMock{}
+	mockedClient.On("Get", "https://www.googleapis.com/oauth2/v3/certs").Return(
+		&http.Response{
+			StatusCode: http.StatusOK,
+			Body:       ioutil.NopCloser(bytes.NewReader([]byte(jwks))),
+		}, nil).Once()
+	store := NewJwksKeyStore("https://accounts.google.com,https://accounts.thalesgroup.com", "https://www.googleapis.com/oauth2/v3/certs")
+	store.client = mockedClient
+	key, _ := store.Get("https://accounts.google.com", "60f4060e58d75fd3f70beff88c794a775327aa31")
+	assert.NotNil(t, key)
+	require.Len(t, store.keys, 2)
+	got, _ := store.Get("https://accounts.thalesgroup.com", "df8d9ee403bcc7185ad51041194bd3433742d9aa")
 	assert.NotNil(t, got)
 	mockedClient.AssertExpectations(t)
 }
