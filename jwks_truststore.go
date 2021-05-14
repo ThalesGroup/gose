@@ -25,9 +25,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/ThalesIgnite/gose/jose"
 	"net/http"
+	"strings"
 	"sync"
+
+	"github.com/ThalesIgnite/gose/jose"
 )
 
 // Interface wrapper to allow mocking of http client.
@@ -37,11 +39,12 @@ type httpClient interface {
 
 // JwksTrustStore is an implementation of the TrustStore interface and can be used for accessing VerificationKeys.
 type JwksTrustStore struct {
-	lock   sync.Mutex
-	url    string
-	issuer string
-	keys   []VerificationKey
-	client httpClient
+	lock         sync.Mutex
+	url          string
+	inputIssuers string //csv of issuers
+	issuers      []string
+	keys         []VerificationKey
+	client       httpClient
 }
 
 // Add this method is not supported on a JwksTrustStore instance and will always return an error.
@@ -56,9 +59,27 @@ func (store *JwksTrustStore) Remove(issuer, kid string) bool {
 
 // Get returns a verification key for the given issuer and key id. If no key is found nil is returned.
 func (store *JwksTrustStore) Get(issuer, kid string) (vk VerificationKey, err error) {
-	if issuer == store.issuer {
-		store.lock.Lock()
-		defer store.lock.Unlock()
+	store.lock.Lock()
+	defer store.lock.Unlock()
+
+	foundIssuer := false
+
+	//lazy instantiation of the issuer list
+	if len(store.issuers) == 0 {
+		store.issuers = strings.Split(store.inputIssuers, ",")
+	}
+
+	//search our list for the provided issuer
+	for _, issuerInStore := range store.issuers {
+		if issuerInStore == issuer {
+			foundIssuer = true
+			break
+		}
+	}
+
+	//is the provided issuer in our list?
+	if foundIssuer {
+
 		for _, key := range store.keys {
 			if key.Kid() == kid {
 				vk = key
@@ -101,16 +122,16 @@ func (store *JwksTrustStore) Get(issuer, kid string) (vk VerificationKey, err er
 				return key, nil
 			}
 		}
-		// No such currently valid key.
 	}
+	// No such currently valid key or issuer
 	return
 }
 
 // NewJwksKeyStore creates a new instance of a TrustStore and can be used to load verification keys.
-func NewJwksKeyStore(issuer, url string) *JwksTrustStore {
+func NewJwksKeyStore(issuerList, url string) *JwksTrustStore {
 	return &JwksTrustStore{
-		url:    url,
-		issuer: issuer,
-		client: http.DefaultClient,
+		url:          url,
+		inputIssuers: issuerList,
+		client:       http.DefaultClient,
 	}
 }
