@@ -71,10 +71,10 @@ func (verifier *JwtVerifierImpl) Verify(jwt string, audience []string) (kid stri
 
 	// Though optional in the JWT spec we always require a Key ID to be present
 	// to resist various known attacks.
-	// if len(token.Header.Kid) == 0 {
-	// 	err = ErrInvalidKid
-	// 	return
-	// }
+	if len(token.Header.Kid) == 0 {
+		err = ErrInvalidKid
+		return
+	}
 	if len(token.Header.Kid) > 0 {
 		var key VerificationKey
 		key, err = verifier.store.Get(token.Claims.Issuer, token.Header.Kid)
