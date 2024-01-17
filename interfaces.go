@@ -1,4 +1,4 @@
-// Copyright 2019 Thales e-Security, Inc
+// Copyright 2024 Thales Group
 //
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the
@@ -26,7 +26,7 @@ import (
 	"crypto/x509"
 	"fmt"
 
-	"github.com/ThalesIgnite/gose/jose"
+	"github.com/ThalesGroup/gose/jose"
 )
 
 //InvalidFormat is an interface for handling invalid format errors
@@ -109,8 +109,8 @@ type AsymmetricDecryptionKey interface {
 	Encryptor() (AsymmetricEncryptionKey, error)
 }
 
-// AuthenticatedEncryptionKey implements authenticated encryption and decryption.
-type AuthenticatedEncryptionKey interface {
+// AeadEncryptionKey implements authenticated encryption and decryption.
+type AeadEncryptionKey interface {
 	Key
 	Algorithmed
 	// GenerateNonce generates a nonce of the correct size for use in Sealinging operations.
@@ -119,6 +119,22 @@ type AuthenticatedEncryptionKey interface {
 	Seal(operation jose.KeyOps, nonce, plaintext, aad []byte) (ciphertext, tag []byte, err error)
 	// Open and validate the given ciphertext and tag returning the plaintext.
 	Open(operation jose.KeyOps, nonce, ciphertext, aad, tag []byte) (plaintext []byte, err error)
+}
+
+// BlockEncryptionKey implements encryption and decryption operations with block modes and symmetric keys
+type BlockEncryptionKey interface {
+	Key
+	Algorithmed
+	// Seal the given plaintext returning ciphertext
+	Seal(plaintext []byte) []byte
+	// Open and validate the given ciphertext
+	Open(ciphertext []byte) []byte
+}
+
+type HmacKey interface {
+	Key
+	// Hash method gets bytes as input and sum it all to return a hashed result in a 32 bytes array
+	Hash(input []byte) []byte
 }
 
 // JwtSigner implements generation of signed compact JWTs as defined by https://tools.ietf.org/html/rfc7519.
@@ -156,4 +172,18 @@ type JweEncryptor interface {
 // JweDecryptor implements decryption and verification of a given ciphertext and aad to a plaintext as defined by https://tools.ietf.org/html/rfc7516.
 type JweDecryptor interface {
 	Decrypt(jwe string) (plaintext, aad []byte, err error)
+}
+
+type JweHmacVerifier interface {
+	// ComputeHash computes the authentication Tag for of a Jwe by hashing the concatenated values in argument
+	//  aad is the protected header of the JWE encoded in b64
+	//  IV is the initialization vector of the JWE recipient for the encryption/decryption operations
+	//  Ciphertext is the result of the encryption operation using the current IV
+	//  AL is representing the number of bits (length) in AAD expressed as a big-endian 64-bit unsigned integer
+	// Returns the hash result of a hmac operation given the concatenated slice of the values above
+	ComputeHash(aad []byte, iv []byte, ciphertext []byte) []byte
+	// VerifyCompact a compact jwe (rfc 7516) in input and computes its authentication TAG with a hmac operation with
+	// the authentication TAG in the JWE.
+	// Returns false if the integrity check fails, i.e the tags are different
+	VerifyCompact(jwe jose.JweRfc7516Compact,) (result bool, err error)
 }
