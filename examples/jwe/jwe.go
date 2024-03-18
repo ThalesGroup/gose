@@ -1,4 +1,4 @@
-// Copyright 2019 Thales e-Security, Inc
+// Copyright 2024 Thales Group
 //
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the
@@ -23,8 +23,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/ThalesIgnite/gose"
-	"github.com/ThalesIgnite/gose/jose"
+	"github.com/ThalesGroup/gose"
+	"github.com/ThalesGroup/gose/jose"
 	"os"
 )
 
@@ -57,7 +57,7 @@ func main() {
 	fmt.Printf("Created encryption key JWK: %s\n", marshalled)
 
 	// Create an encryptor using our key.
-	encryptor := gose.NewJweDirectEncryptorImpl(key, false)
+	encryptor := gose.NewJweDirectEncryptorAead(key, false)
 
 	// Our encryptor accepts both secret data ti be encrypted as well as additional data to be included in the JWE as an
 	// authenticated and non-repudiable value. The aad value is included in the JWE header in the _thales_aad field.
@@ -72,7 +72,7 @@ func main() {
 	if err != nil {
 		fail(err)
 	}
-	decryptor := gose.NewJweDirectDecryptorImpl([]gose.AuthenticatedEncryptionKey{key})
+	decryptor := gose.NewJweDirectDecryptorAeadImpl([]gose.AeadEncryptionKey{key})
 
 	// Decrypt a JWE blob verifying it's authenticity in the process.
 	plaintext, aad, err := decryptor.Decrypt(jwe)

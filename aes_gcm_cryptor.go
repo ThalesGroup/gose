@@ -1,4 +1,4 @@
-// Copyright 2019 Thales e-Security, Inc
+// Copyright 2024 Thales Group
 //
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the
@@ -26,7 +26,7 @@ import (
 	"crypto/rand"
 	"io"
 
-	"github.com/ThalesIgnite/gose/jose"
+	"github.com/ThalesGroup/gose/jose"
 )
 
 var validEncryptionOpts = []jose.KeyOps{jose.KeyOpsEncrypt}
@@ -105,7 +105,7 @@ func (cryptor *AesGcmCryptor) Seal(operation jose.KeyOps, nonce, plaintext, aad 
 }
 
 // NewAesGcmCryptorFromJwk create a new instance of an AesGCmCryptor from a JWK.
-func NewAesGcmCryptorFromJwk(jwk jose.Jwk, required []jose.KeyOps) (AuthenticatedEncryptionKey, error) {
+func NewAesGcmCryptorFromJwk(jwk jose.Jwk, required []jose.KeyOps) (AeadEncryptionKey, error) {
 	/* Check jwk can be used to encrypt or decrypt */
 	ops := intersection(validCryptorOpts, jwk.Ops())
 	if len(ops) == 0 {
@@ -126,7 +126,7 @@ func NewAesGcmCryptorFromJwk(jwk jose.Jwk, required []jose.KeyOps) (Authenticate
 }
 
 // NewAesGcmCryptor create a new instance of an AesGCmCryptor from the supplied parameters.
-func NewAesGcmCryptor(aead cipher.AEAD, rng io.Reader, kid string, alg jose.Alg, operations []jose.KeyOps) (AuthenticatedEncryptionKey, error) {
+func NewAesGcmCryptor(aead cipher.AEAD, rng io.Reader, kid string, alg jose.Alg, operations []jose.KeyOps) (AeadEncryptionKey, error) {
 	return &AesGcmCryptor{
 		kid:  kid,
 		alg:  alg,

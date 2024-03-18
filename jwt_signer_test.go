@@ -1,4 +1,4 @@
-// Copyright 2019 Thales e-Security, Inc
+// Copyright 2024 Thales Group
 //
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the
@@ -28,7 +28,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ThalesIgnite/gose/jose"
+	"github.com/ThalesGroup/gose/jose"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"

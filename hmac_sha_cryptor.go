@@ -19,71 +19,42 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-package jose
+package gose
 
 import (
-	"encoding/json"
-	"testing"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"hash"
 )
 
-func TestJwks_UnmarshalJSON(t *testing.T) {
-	// Setup
-	const input = `{
-	"keys": [ 
-	{
-		"kty": "RSA",
-		"n": "BBBB",
-		"e": "AQAB",
-		"kid": "1"
-	},
-	{
-		"kty": "RSA",
-		"n": "BBBB",
-		"e": "AQAB",
-		"kid": "2"
-	}]
-}
-`
-	var jwks Jwks
-
-	// Act
-	err := json.Unmarshal([]byte(input), &jwks)
-
-	// Assert
-
-	assert.NoError(t, err)
-	require.Len(t, jwks.Keys, 2)
-	assert.Equal(t, "1", jwks.Keys[0].Kid())
-	assert.Equal(t, "2", jwks.Keys[1].Kid())
+// HmacShaCryptor provides HMAC SHA functions.
+// It implements the HmacKey interface.
+// The hash SHA mechanism is held directly by the key corresponding to the key id (kid).
+// It means that if the key provides SHA-256 mechanism, then the Hash is SHA-256
+type HmacShaCryptor struct {
+	kid  string
+	hash hash.Hash
 }
 
-func TestJwks_MarshalJSON(t *testing.T) {
-	// Setup
-	var rsa PrivateRsaKey
-	rsa.SetKid("1")
-	rsa.N.SetBytes([]byte{0, 1, 2, 3, 4})
-	rsa.D.SetBytes([]byte{0, 1, 2, 3, 4})
-	rsa.P.SetBytes([]byte{0, 1, 2, 3, 4})
-	rsa.Q.SetBytes([]byte{0, 1, 2, 3, 4})
-	rsa.Dp.SetBytes([]byte{0, 1, 2, 3, 4})
-	rsa.Dq.SetBytes([]byte{0, 1, 2, 3, 4})
-	rsa.Qi.SetBytes([]byte{0, 1, 2, 3, 4})
-	rsa.E.SetBytes([]byte{1, 0, 1})
+func (h HmacShaCryptor) Kid() string {
+	return h.kid
+}
 
-	jwks := Jwks{
-		Keys: []Jwk{
-			&rsa,
-			&rsa,
-		},
+// Hash returns the result from the SHA operation executed by the provided key
+func (h HmacShaCryptor) Hash(input []byte) []byte {
+	// preprocess the size of the final output
+	outputSize := h.hash.Size()
+	// Sum() concatenates the input with the hash result
+	appendedOutput := h.hash.Sum(input)
+	// extract the hash result from the hash output
+	res := make([]byte, outputSize)
+	copy(res, appendedOutput[len(input):])
+	return res
+}
+
+// NewHmacShaCryptor create a new instance of an HmacShaCryptor from the supplied parameters.
+// It implements HmacKey
+func NewHmacShaCryptor(kid string, hash hash.Hash) HmacKey {
+	return &HmacShaCryptor{
+		kid:  kid,
+		hash: hash,
 	}
-
-	// Act
-	marshalled, err := json.Marshal(&jwks)
-
-	// Assert
-	assert.NoError(t, err)
-	assert.NotEmpty(t, marshalled)
 }

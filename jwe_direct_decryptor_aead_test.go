@@ -1,4 +1,4 @@
-// Copyright 2019 Thales e-Security, Inc
+// Copyright 2024 Thales Group
 //
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the
@@ -27,7 +27,7 @@ import (
 
 	"github.com/stretchr/testify/mock"
 
-	"github.com/ThalesIgnite/gose/jose"
+	"github.com/ThalesGroup/gose/jose"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -36,7 +36,7 @@ import (
 func TestNewJweDirectDecryptorImpl(t *testing.T) {
 	keyMock := &authenticatedEncryptionKeyMock{}
 	keyMock.On("Kid").Return("unique").Once()
-	decryptor := NewJweDirectDecryptorImpl([]AuthenticatedEncryptionKey{keyMock})
+	decryptor := NewJweDirectDecryptorAeadImpl([]AeadEncryptionKey{keyMock})
 	require.NotNil(t, decryptor)
 	assert.NotNil(t, decryptor.keystore)
 }
@@ -44,7 +44,7 @@ func TestNewJweDirectDecryptorImpl(t *testing.T) {
 func TestJweDirectDecryptorImpl_Decrypt_InvalidJweFormat(t *testing.T) {
 	keyMock := &authenticatedEncryptionKeyMock{}
 	keyMock.On("Kid").Return("unique").Once()
-	decryptor := NewJweDirectDecryptorImpl([]AuthenticatedEncryptionKey{keyMock})
+	decryptor := NewJweDirectDecryptorAeadImpl([]AeadEncryptionKey{keyMock})
 	require.NotNil(t, decryptor)
 
 	pt, aad, err := decryptor.Decrypt("not a jwe")
@@ -57,7 +57,7 @@ func TestJweDirectDecryptorImpl_Decrypt_InvalidJweFormat(t *testing.T) {
 func TestJweDirectDecryptorImpl_Decrypt_ZipCompressionNotSupport(t *testing.T) {
 	keyMock := &authenticatedEncryptionKeyMock{}
 	keyMock.On("Kid").Return("unique").Once()
-	decryptor := NewJweDirectDecryptorImpl([]AuthenticatedEncryptionKey{keyMock})
+	decryptor := NewJweDirectDecryptorAeadImpl([]AeadEncryptionKey{keyMock})
 	require.NotNil(t, decryptor)
 
 	fakeJwe := &jose.Jwe{
@@ -91,7 +91,7 @@ func TestJweDirectDecryptorImpl_Decrypt_ZipCompressionNotSupport(t *testing.T) {
 func TestJweDirectDecryptorImpl_Decrypt_InvalidKeyId(t *testing.T) {
 	keyMock := &authenticatedEncryptionKeyMock{}
 	keyMock.On("Kid").Return("unique").Once()
-	decryptor := NewJweDirectDecryptorImpl([]AuthenticatedEncryptionKey{keyMock})
+	decryptor := NewJweDirectDecryptorAeadImpl([]AeadEncryptionKey{keyMock})
 	require.NotNil(t, decryptor)
 
 	fakeJwe := &jose.Jwe{
@@ -124,7 +124,7 @@ func TestJweDirectDecryptorImpl_Decrypt_InvalidKeyId(t *testing.T) {
 func TestJweDirectDecryptorImpl_Decrypt_UnknownKeyId(t *testing.T) {
 	keyMock := &authenticatedEncryptionKeyMock{}
 	keyMock.On("Kid").Return("unique").Once()
-	decryptor := NewJweDirectDecryptorImpl([]AuthenticatedEncryptionKey{keyMock})
+	decryptor := NewJweDirectDecryptorAeadImpl([]AeadEncryptionKey{keyMock})
 	require.NotNil(t, decryptor)
 
 	fakeJwe := &jose.Jwe{
@@ -158,7 +158,7 @@ func TestJweDirectDecryptorImpl_Decrypt_InvalidKeyAlg(t *testing.T) {
 	keyMock := &authenticatedEncryptionKeyMock{}
 	keyMock.On("Kid").Return("unique").Once()
 	keyMock.On("Algorithm").Return(jose.AlgES256).Once()
-	decryptor := NewJweDirectDecryptorImpl([]AuthenticatedEncryptionKey{keyMock})
+	decryptor := NewJweDirectDecryptorAeadImpl([]AeadEncryptionKey{keyMock})
 	require.NotNil(t, decryptor)
 
 	fakeJwe := &jose.Jwe{
@@ -192,7 +192,7 @@ func TestJweDirectDecryptorImpl_Decrypt_InvalidJweAlg(t *testing.T) {
 	keyMock := &authenticatedEncryptionKeyMock{}
 	keyMock.On("Kid").Return("unique").Once()
 	keyMock.On("Algorithm").Return(jose.AlgA256GCM).Once()
-	decryptor := NewJweDirectDecryptorImpl([]AuthenticatedEncryptionKey{keyMock})
+	decryptor := NewJweDirectDecryptorAeadImpl([]AeadEncryptionKey{keyMock})
 	require.NotNil(t, decryptor)
 
 	fakeJwe := &jose.Jwe{
@@ -226,7 +226,7 @@ func TestJweDirectDecryptorImpl_Decrypt_InvalidJweEnc(t *testing.T) {
 	keyMock := &authenticatedEncryptionKeyMock{}
 	keyMock.On("Kid").Return("unique").Once()
 	keyMock.On("Algorithm").Return(jose.AlgA256GCM).Once()
-	decryptor := NewJweDirectDecryptorImpl([]AuthenticatedEncryptionKey{keyMock})
+	decryptor := NewJweDirectDecryptorAeadImpl([]AeadEncryptionKey{keyMock})
 	require.NotNil(t, decryptor)
 
 	fakeJwe := &jose.Jwe{
@@ -262,7 +262,7 @@ func TestJweDirectDecryptorImpl_Decrypt_InvalidCiphertextOrTag(t *testing.T) {
 	keyMock.On("Algorithm").Return(jose.AlgA256GCM).Once()
 	keyMock.On("Kid").Return("unique").Once()
 	keyMock.On("Open", jose.KeyOpsDecrypt, []byte("iv"), []byte("encrypted"), mock.Anything, []byte("tag")).Return([]byte(nil), expectedError).Once()
-	decryptor := NewJweDirectDecryptorImpl([]AuthenticatedEncryptionKey{keyMock})
+	decryptor := NewJweDirectDecryptorAeadImpl([]AeadEncryptionKey{keyMock})
 	require.NotNil(t, decryptor)
 
 	fakeJwe := &jose.Jwe{
@@ -296,7 +296,7 @@ func TestJweDirectDecryptorImpl_Decrypt(t *testing.T) {
 	keyMock := &authenticatedEncryptionKeyMock{}
 	keyMock.On("Algorithm").Return(jose.AlgA256GCM).Once()
 	keyMock.On("Kid").Return("unique").Once()
-	decryptor := NewJweDirectDecryptorImpl([]AuthenticatedEncryptionKey{keyMock})
+	decryptor := NewJweDirectDecryptorAeadImpl([]AeadEncryptionKey{keyMock})
 	require.NotNil(t, decryptor)
 
 	fakeJwe := &jose.Jwe{

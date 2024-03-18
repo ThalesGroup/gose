@@ -1,4 +1,4 @@
-// Copyright 2019 Thales e-Security, Inc
+// Copyright 2024 Thales Group
 //
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the
@@ -22,25 +22,25 @@
 package gose
 
 import (
-	"github.com/ThalesIgnite/gose/jose"
+	"github.com/ThalesGroup/gose/jose"
 )
 
 var (
-	algToEncMap = map[jose.Alg]jose.Enc{
+	gcmAlgToEncMap = map[jose.Alg]jose.Enc{
 		jose.AlgA128GCM: jose.EncA128GCM,
 		jose.AlgA192GCM: jose.EncA192GCM,
 		jose.AlgA256GCM: jose.EncA256GCM,
 	}
 )
 
-// JweDirectEncryptionEncryptorImpl implementation of JweDirectEncryptionEncryptor interface.
-type JweDirectEncryptionEncryptorImpl struct {
-	key        AuthenticatedEncryptionKey
+// JweDirectEncryptorAead implementation of JweDirectEncryptionEncryptor interface.
+type JweDirectEncryptorAead struct {
+	key        AeadEncryptionKey
 	externalIV bool
 }
 
 // Encrypt encrypt and authenticate the given plaintext and AAD returning a compact JWE.
-func (encryptor *JweDirectEncryptionEncryptorImpl) Encrypt(plaintext, aad []byte) (string, error) {
+func (encryptor *JweDirectEncryptorAead) Encrypt(plaintext, aad []byte) (string, error) {
 	var nonce []byte
 	var err error
 	if !encryptor.externalIV {
@@ -65,7 +65,7 @@ func (encryptor *JweDirectEncryptionEncryptorImpl) Encrypt(plaintext, aad []byte
 				Alg: jose.AlgDir,
 				Kid: encryptor.key.Kid(),
 			},
-			Enc: algToEncMap[encryptor.key.Algorithm()],
+			Enc:                   gcmAlgToEncMap[encryptor.key.Algorithm()],
 			JweCustomHeaderFields: customHeaderFields,
 		},
 		EncryptedKey: []byte{},
@@ -94,9 +94,9 @@ func (encryptor *JweDirectEncryptionEncryptorImpl) Encrypt(plaintext, aad []byte
 	return jwe.Marshal(), nil
 }
 
-// NewJweDirectEncryptorImpl construct an instance of a JweDirectEncryptionEncryptorImpl.
-func NewJweDirectEncryptorImpl(key AuthenticatedEncryptionKey, externalIV bool) *JweDirectEncryptionEncryptorImpl {
-	return &JweDirectEncryptionEncryptorImpl{
+// NewJweDirectEncryptorAead construct an instance of a JweDirectEncryptorAead.
+func NewJweDirectEncryptorAead(key AeadEncryptionKey, externalIV bool) *JweDirectEncryptorAead {
+	return &JweDirectEncryptorAead{
 		key:        key,
 		externalIV: externalIV,
 	}

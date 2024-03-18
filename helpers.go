@@ -1,4 +1,4 @@
-// Copyright 2019 Thales e-Security, Inc
+// Copyright 2024 Thales Group
 //
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the
@@ -42,7 +42,7 @@ import (
 	"encoding/json"
 	"log"
 
-	"github.com/ThalesIgnite/gose/jose"
+	"github.com/ThalesGroup/gose/jose"
 )
 
 const (
@@ -370,12 +370,28 @@ func JwkToString(jwk jose.Jwk) (string, error) {
 	return string(b), nil
 }
 
-func base64EncodeInt32(val uint32) string {
+func base64EncodeUInt32(val uint32) string {
 	var buf bytes.Buffer
 	if err := binary.Write(&buf, binary.BigEndian, &val); err != nil {
 		log.Panicf("%s", err)
 	}
 	return base64.RawURLEncoding.EncodeToString(buf.Bytes())
+}
+
+func uintToBytesBigEndian(val uint64) []byte {
+	var buf bytes.Buffer
+	if err := binary.Write(&buf, binary.BigEndian, &val); err != nil {
+		log.Panicf("%s", err)
+	}
+	return buf.Bytes()
+}
+
+func concatByteArrays(slices [][]byte) []byte {
+	var tmp []byte
+	for _, s := range slices {
+		tmp = append(tmp, s...)
+	}
+	return tmp
 }
 
 //JwkFromPrivateKey builds JWK, from a crypto.Signer, with certificates, and scoped to certain operations,  or errors

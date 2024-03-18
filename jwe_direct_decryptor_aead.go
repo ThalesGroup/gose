@@ -1,4 +1,4 @@
-// Copyright 2019 Thales e-Security, Inc
+// Copyright 2024 Thales Group
 //
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the
@@ -21,17 +21,17 @@
 
 package gose
 
-import "github.com/ThalesIgnite/gose/jose"
+import "github.com/ThalesGroup/gose/jose"
 
-var _ JweDecryptor = (*JweDirectDecryptorImpl)(nil)
+var _ JweDecryptor = (*JweDirectDecryptorAeadImpl)(nil)
 
-// JweDirectDecryptorImpl is a concrete implementation of the JweDirectDecryptor interface.
-type JweDirectDecryptorImpl struct {
-	keystore map[string]AuthenticatedEncryptionKey
+// JweDirectDecryptorAeadImpl is a concrete implementation of the JweDirectDecryptor interface.
+type JweDirectDecryptorAeadImpl struct {
+	keystore map[string]AeadEncryptionKey
 }
 
 // Decrypt and verify the given JWE returning both the plaintext and AAD.
-func (decryptor *JweDirectDecryptorImpl) Decrypt(jwe string) (plaintext, aad []byte, err error) {
+func (decryptor *JweDirectDecryptorAeadImpl) Decrypt(jwe string) (plaintext, aad []byte, err error) {
 
 	var jweStruct jose.Jwe
 	if err = jweStruct.Unmarshal(jwe); err != nil {
@@ -50,14 +50,14 @@ func (decryptor *JweDirectDecryptorImpl) Decrypt(jwe string) (plaintext, aad []b
 		return
 	}
 
-	var key AuthenticatedEncryptionKey
+	var key AeadEncryptionKey
 	var exists bool
 	if key, exists = decryptor.keystore[jweStruct.Header.Kid]; !exists {
 		err = ErrUnknownKey
 		return
 	}
 
-	enc, ok := algToEncMap[key.Algorithm()]
+	enc, ok := gcmAlgToEncMap[key.Algorithm()]
 	if !ok {
 		err = ErrInvalidEncryption
 		return
@@ -80,11 +80,11 @@ func (decryptor *JweDirectDecryptorImpl) Decrypt(jwe string) (plaintext, aad []b
 	return
 }
 
-// NewJweDirectDecryptorImpl create a new instance of a JweDirectDecryptorImpl.
-func NewJweDirectDecryptorImpl(keys []AuthenticatedEncryptionKey) *JweDirectDecryptorImpl {
+// NewJweDirectDecryptorAeadImpl create a new instance of a JweDirectDecryptorAeadImpl.
+func NewJweDirectDecryptorAeadImpl(keys []AeadEncryptionKey) *JweDirectDecryptorAeadImpl {
 	// Create map out of our list of keys. The map is keyed in Kid.
-	decryptor := &JweDirectDecryptorImpl{
-		keystore: map[string]AuthenticatedEncryptionKey{},
+	decryptor := &JweDirectDecryptorAeadImpl{
+		keystore: map[string]AeadEncryptionKey{},
 	}
 	for _, key := range keys {
 		decryptor.keystore[key.Kid()] = key

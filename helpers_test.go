@@ -1,4 +1,4 @@
-// Copyright 2019 Thales e-Security, Inc
+// Copyright 2024 Thales Group
 //
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the
@@ -25,11 +25,12 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"crypto/rsa"
+	"encoding/binary"
 	"math/big"
 	"regexp"
 	"testing"
 
-	"github.com/ThalesIgnite/gose/jose"
+	"github.com/ThalesGroup/gose/jose"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -409,4 +410,14 @@ func TestJwtToString(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestUintToBytesBigEndian(t *testing.T) {
+	var val1 uint64
+	val1 = 42
+	be1 := uintToBytesBigEndian(val1)
+	require.NotEmpty(t, be1)
+
+	val2 := binary.BigEndian.Uint64(be1)
+	require.Equal(t, val1, val2)
 }

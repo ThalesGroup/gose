@@ -1,4 +1,4 @@
-// Copyright 2019 Thales e-Security, Inc
+// Copyright 2024 Thales Group
 //
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the
@@ -28,7 +28,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 
-	"github.com/ThalesIgnite/gose/jose"
+	"github.com/ThalesGroup/gose/jose"
 )
 
 const minimumRsaKeySize = 2048 // The minimum RSA key size allowable as defined https://tools.ietf.org/html/rfc7518#section-3.5
@@ -118,7 +118,7 @@ func (g *ECDSASigningKeyGenerator) Generate(alg jose.Alg, operations []jose.KeyO
 type AuthenticatedEncryptionKeyGenerator struct{}
 
 // Generate generate a Generate and JWK representation.
-func (g *AuthenticatedEncryptionKeyGenerator) Generate(alg jose.Alg, operations []jose.KeyOps) (AuthenticatedEncryptionKey, jose.Jwk, error) {
+func (g *AuthenticatedEncryptionKeyGenerator) Generate(alg jose.Alg, operations []jose.KeyOps) (AeadEncryptionKey, jose.Jwk, error) {
 	sz, ok := authenticatedEncryptionAlgs[alg]
 	if !ok {
 		return nil, nil, ErrInvalidAlgorithm
