@@ -1,3 +1,4 @@
+
 // Copyright 2024 Thales Group
 //
 // Permission is hereby granted, free of charge, to any person obtaining
@@ -19,71 +20,32 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-package jose
+package gose
 
 import (
-	"encoding/json"
-	"testing"
-
-	"github.com/stretchr/testify/assert"
+	"crypto/sha256"
 	"github.com/stretchr/testify/require"
+	"testing"
 )
 
-func TestJwks_UnmarshalJSON(t *testing.T) {
-	// Setup
-	const input = `{
-	"keys": [ 
-	{
-		"kty": "RSA",
-		"n": "BBBB",
-		"e": "AQAB",
-		"kid": "1"
-	},
-	{
-		"kty": "RSA",
-		"n": "BBBB",
-		"e": "AQAB",
-		"kid": "2"
-	}]
-}
-`
-	var jwks Jwks
-
-	// Act
-	err := json.Unmarshal([]byte(input), &jwks)
-
-	// Assert
-
-	assert.NoError(t, err)
-	require.Len(t, jwks.Keys, 2)
-	assert.Equal(t, "1", jwks.Keys[0].Kid())
-	assert.Equal(t, "2", jwks.Keys[1].Kid())
+func TestHmacShaCryptor(t *testing.T) {
+	kid := "hmac-0"
+	cryptor := NewHmacShaCryptor(kid, sha256.New())
+	t.Run("testHmacKid", func(t *testing.T) {
+		testHmacKid(t, cryptor, kid)
+	})
+	t.Run("testHmacHash", func(t *testing.T) {
+		testHmacHash(t, cryptor, []byte("hashme"))
+	})
 }
 
-func TestJwks_MarshalJSON(t *testing.T) {
-	// Setup
-	var rsa PrivateRsaKey
-	rsa.SetKid("1")
-	rsa.N.SetBytes([]byte{0, 1, 2, 3, 4})
-	rsa.D.SetBytes([]byte{0, 1, 2, 3, 4})
-	rsa.P.SetBytes([]byte{0, 1, 2, 3, 4})
-	rsa.Q.SetBytes([]byte{0, 1, 2, 3, 4})
-	rsa.Dp.SetBytes([]byte{0, 1, 2, 3, 4})
-	rsa.Dq.SetBytes([]byte{0, 1, 2, 3, 4})
-	rsa.Qi.SetBytes([]byte{0, 1, 2, 3, 4})
-	rsa.E.SetBytes([]byte{1, 0, 1})
+func testHmacKid(t *testing.T, cryptor HmacKey, kid string) {
+	require.Equal(t, kid, cryptor.Kid())
+}
 
-	jwks := Jwks{
-		Keys: []Jwk{
-			&rsa,
-			&rsa,
-		},
-	}
-
-	// Act
-	marshalled, err := json.Marshal(&jwks)
-
-	// Assert
-	assert.NoError(t, err)
-	assert.NotEmpty(t, marshalled)
+func testHmacHash(t *testing.T, cryptor HmacKey, input []byte) {
+	sha := cryptor.Hash(input)
+	require.NotEmpty(t, sha)
+	require.Equal(t, 32, len(sha))
+	require.NotContains(t, string(sha), string(input))
 }

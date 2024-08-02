@@ -1,4 +1,4 @@
-// Copyright 2019 Thales e-Security, Inc
+// Copyright 2024 Thales Group
 //
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the
@@ -52,6 +52,19 @@ type Enc string
 // Zip is a type representing values destined for the `zip` field in a JWE header.
 type Zip string
 
+type Header struct {
+	Alg Alg    `json:"alg"`
+	Jku string `json:"jku,omitempty"`
+	//jwkFields []jwkFields `json:"jwk,omitempty"`  TODO finish this
+	Kid    string   `json:"kid,omitempty"`
+	X5U    string   `json:"x5u,omitempty"`
+	X5C    [][]byte `json:"x5c,omitempty"`
+	X5T    *Blob    `json:"x5t,omitempty"`
+	X5T256 *Blob    `json:"x5t#S256,omitempty"`
+	Typ    JwsType  `json:"typ,omitempty"`
+	Cty    JwsType  `json:"cty,omitempty"`
+}
+
 const (
 	// Supported Algorithms
 
@@ -79,6 +92,8 @@ const (
 	AlgA192GCM Alg = "A192GCM"
 	//AlgA256GCM AES GCM using 256-bit key
 	AlgA256GCM Alg = "A256GCM"
+	//AlgA256CBC AES CBC using 256-bit key
+	AlgA256CBC Alg = "A256CBC"
 	// AlgDir direct encryption for use with JWEs
 	AlgDir Alg = "dir"
 	// AlgRSAOAEP RSA OAEP Key encryption for use with JWEs
@@ -133,6 +148,8 @@ const (
 	EncA192GCM Enc = "A192GCM"
 	// EncA256GCM AES GCM 256 Enc type
 	EncA256GCM Enc = "A256GCM"
+	// EncA256CBC AES CBC 256 Enc type
+	EncA256CBC Enc = "A256CBC"
 
 	// DeflateZip deflate type
 	DeflateZip Zip = "DEF"
