@@ -10,6 +10,7 @@ import (
 )
 
 // AsymmetricDecryptionKey implements RSA OAEP using SHA1 decryption.
+// TODO: rename with `AsymmetricDecryptionKeyImpl`
 type AsymmetricDecryptionKey struct {
 	kid string
 	ctx *crypto11.Context
@@ -37,15 +38,15 @@ func (a *AsymmetricDecryptionKey) Algorithm() jose.Alg {
 	return jose.AlgRSAOAEP
 }
 
-// Decrypt decrypt the given ciphertext data returning the derived plaintext.
-func (a *AsymmetricDecryptionKey) Decrypt(_ jose.KeyOps, bytes []byte) ([]byte, error) {
+// Decrypt the given ciphertext data returning the derived plaintext.
+func (a *AsymmetricDecryptionKey) Decrypt(_ jose.KeyOps, hash crypto.Hash, bytes []byte) ([]byte, error) {
 	randReader, err := a.ctx.NewRandomReader()
 	if err != nil {
 		return nil, err
 	}
 
 	return a.key.Decrypt(randReader, bytes, &rsa.OAEPOptions {
-		Hash: crypto.SHA1,
+		Hash: hash,
 		Label: nil,
 	})
 }

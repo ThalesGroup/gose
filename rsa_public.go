@@ -116,14 +116,14 @@ func (k *RsaPublicKeyImpl) Verify(operation jose.KeyOps, data []byte, signature 
 }
 
 // Encrypt encrypts the given plaintext returning the derived ciphertext.
-func (k *RsaPublicKeyImpl) Encrypt(requested jose.KeyOps, data []byte) ([]byte, error) {
+func (k *RsaPublicKeyImpl) Encrypt(requested jose.KeyOps, hash crypto.Hash, data []byte) ([]byte, error) {
 	/* Verify the operation being requested is supported by the jwk. */
 	ops := intersection(validEncryptionOps, k.jwk.Ops())
 	if !isSubset(ops, []jose.KeyOps{requested}) {
 		return nil, ErrInvalidOperations
 	}
 	// SHA1 is still safe when used in the construction of OAEP.
-	return rsa.EncryptOAEP(crypto.SHA1.New(), rand.Reader, &k.key, data, nil)
+	return rsa.EncryptOAEP(hash.New(), rand.Reader, &k.key, data, nil)
 }
 
 //Certificates for verification key

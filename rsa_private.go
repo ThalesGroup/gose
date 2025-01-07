@@ -109,13 +109,13 @@ func (rsaKey *RsaPrivateKeyImpl) Certificates() []*x509.Certificate {
 }
 
 // Decrypt decrypt the given ciphertext returning the derived plaintext.
-func (rsaKey *RsaPrivateKeyImpl) Decrypt(requested jose.KeyOps, ciphertext []byte) ([]byte, error) {
+func (rsaKey *RsaPrivateKeyImpl) Decrypt(requested jose.KeyOps, hash crypto.Hash, ciphertext []byte) ([]byte, error) {
 	ops := intersection(validDecryptionOps, rsaKey.jwk.Ops())
 	if !isSubset(ops, []jose.KeyOps{requested}) {
 		return nil, ErrInvalidOperations
 	}
 	// SHA1 is still safe when used in the construction of OAEP.
-	return rsa.DecryptOAEP(crypto.SHA1.New(), rand.Reader, rsaKey.key, ciphertext, nil)
+	return rsa.DecryptOAEP(hash.New(), rand.Reader, rsaKey.key, ciphertext, nil)
 }
 
 func (rsaKey *RsaPrivateKeyImpl) publicKey() (*RsaPublicKeyImpl, error) {

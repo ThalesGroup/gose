@@ -26,6 +26,7 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"encoding/binary"
+	"fmt"
 	"math/big"
 	"regexp"
 	"testing"
@@ -375,43 +376,6 @@ func TestJwkToString(t *testing.T) {
 	assert.Regexp(t, regexp.MustCompile(`{"key_ops":\["verify\"\],"alg":"PS256","kid":"[a-f0-9]{64}","n":"[a-zA-Z0-9-_]+","e":"[0-9A-Z]{4}","kty":"RSA"}`), jwkString)
 }
 
-func TestJwtToString(t *testing.T) {
-	type args struct {
-		jwt jose.Jwt
-	}
-	tests := []struct {
-		name     string
-		args     args
-		wantFull string
-		wantErr  bool
-	}{
-		{
-			name: "ok",
-			args: args{
-				jwt: jose.Jwt{
-					Header:    jose.JwsHeader{},
-					Claims:    jose.JwtClaims{},
-					Signature: nil,
-				},
-			},
-			wantFull: "",
-			wantErr:  false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			gotFull, err := JwtToString(tt.args.jwt)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("JwtToString() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if gotFull != tt.wantFull {
-				t.Errorf("JwtToString() gotFull = %v, want %v", gotFull, tt.wantFull)
-			}
-		})
-	}
-}
-
 func TestUintToBytesBigEndian(t *testing.T) {
 	var val1 uint64
 	val1 = 42
@@ -420,4 +384,16 @@ func TestUintToBytesBigEndian(t *testing.T) {
 
 	val2 := binary.BigEndian.Uint64(be1)
 	require.Equal(t, val1, val2)
+}
+
+func TestGetALFromAAD(t *testing.T) {
+	aad := make([]byte, 51)
+	_, err := rand.Read(aad); if err != nil {
+		t.Fatal(err)
+	}
+
+	exp := "[0 0 0 0 0 0 1 152]"
+	res := GetALFromAAD(aad)
+	test := fmt.Sprintf("%v", res)
+	assert.Equal(t, exp, test)
 }

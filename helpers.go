@@ -574,8 +574,15 @@ func LoadSymmetricAEAD(jwk jose.Jwk, required []jose.KeyOps) (a cipher.AEAD, err
 	}
 }
 
-// JwtToString returns the full string of the Jwt or error
-func JwtToString(jwt jose.Jwt) (full string, err error) {
-
+// GetALFromAAD takes the AAD field of a JWE and compute the AL field
+// AL is the octet string of the number of bits in AAD expressed as a big endian 64-bit unsigned integer.
+// For example, if AAD is 51 bytes long, which is 408 bits long, the octet string AL, which is the number of bits in AAD expressed as a big endian 64 bit unsigned integer is [0, 0, 0, 0, 0, 0, 1, 152].
+func GetALFromAAD(aad []byte) (al []byte) {
+	// Convert the length to bits
+	aadLengthBits := uint64(len(aad) * 8) // 51 bytes * 8 bits/byte = 408 bits
+	// Create a byte slice to hold the big-endian 64-bit unsigned integer
+	al = make([]byte, 8)
+	// Convert the length in bits to a big-endian 64-bit unsigned integer
+	binary.BigEndian.PutUint64(al, aadLengthBits)
 	return
 }

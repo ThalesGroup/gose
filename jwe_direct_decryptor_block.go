@@ -54,10 +54,6 @@ func (decryptor *JweDirectDecryptorBlock) Decrypt(marshalledJwe string) (plainte
 	if jwe.ProtectedHeader.Kid != decryptor.aesKey.Kid() {
 		return nil, nil, fmt.Errorf("error checking the Key ID for decryption. ID is '%v' but expected is '%v'", jwe.ProtectedHeader.Kid, decryptor.aesKey.Kid())
 	}
-	// check that the CEK is empty for direct encryption
-	if len(jwe.EncryptedKey) != 0 {
-		return nil, nil, fmt.Errorf("error checking the encrypted key. Should be empty for empty encryption but was '%d' bytes long", len(jwe.EncryptedKey))
-	}
 
 	// INTEGRITY CHECK before decryption
 	integrity, err := decryptor.jweVerifier.VerifyCompact(jwe);
