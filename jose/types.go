@@ -98,6 +98,13 @@ const (
 	AlgDir Alg = "dir"
 	// AlgRSAOAEP RSA OAEP Key encryption for use with JWEs
 	AlgRSAOAEP Alg = "RSA-OAEP"
+	// AlgRSAOAEPSHA1 and AlgRSAOAEPSHA2 are here to differentiate RSA OAEP using SHA1 or SHA2 for
+	// encryption / decryption in the code, like in switch case statements for example.
+	// They have the same value as AlgRSAOAEP nonetheless.
+	// Because some KMS like SoftHSMv2 do not implement RSA-OAEP with SHA2 yet, but some others do,
+	// we need to support both of these modes in gose implementation.
+	AlgRSAOAEPSHA1 Alg = "RSA-OAEP"
+	AlgRSAOAEPSHA2 Alg = "RSA-OAEP"
 
 	//CrvP256 NIST P-256
 	CrvP256 Crv = "P-256"

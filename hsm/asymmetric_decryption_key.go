@@ -10,7 +10,7 @@ import (
 )
 
 // AsymmetricDecryptionKey implements RSA OAEP using SHA1 decryption.
-// TODO: rename with `AsymmetricDecryptionKeyImpl`
+// This structure is made to provide a management of pkcs11-handled asymmetric key pairs
 type AsymmetricDecryptionKey struct {
 	kid string
 	ctx *crypto11.Context
@@ -61,3 +61,13 @@ func (a *AsymmetricDecryptionKey) Encryptor() (gose.AsymmetricEncryptionKey, err
 }
 
 var _ gose.AsymmetricDecryptionKey = (*AsymmetricDecryptionKey)(nil)
+
+// NewAsymmetricDecryptionKey creates an instance with the given pkcs11
+// key handler.
+func NewAsymmetricDecryptionKey(pkcs11Context *crypto11.Context, key crypto11.SignerDecrypter, kid string) (*AsymmetricDecryptionKey, error) {
+	return &AsymmetricDecryptionKey{
+		kid: kid,
+		ctx: pkcs11Context,
+		key: key,
+	}, nil
+}
