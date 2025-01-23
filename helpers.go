@@ -307,6 +307,8 @@ var inverseOps = map[jose.KeyOps]jose.KeyOps{
 	jose.KeyOpsVerify:  jose.KeyOpsSign,
 }
 
+// TODO this method always return PS algortihm for signature but never RSA alg for encryption.
+//  need to find a way to return encryption alg
 func rsaBitsToAlg(bitLen int) jose.Alg {
 	/* Based on NIST recommendations from 2016. */
 	if bitLen >= 15360 {
@@ -455,6 +457,9 @@ func JwkFromPublicKey(publicKey crypto.PublicKey, operations []jose.KeyOps, cert
 		if v.E > math.MaxInt32 {
 			return nil, ErrInvalidExponent
 		}
+		// TODO add the possibility to choose the algorithm with an input
+		//  here, only PS is returned, nothing about encryption
+
 		alg := rsaBitsToAlg(v.N.BitLen())
 		/* Key generation. */
 		var rsa jose.PublicRsaKey

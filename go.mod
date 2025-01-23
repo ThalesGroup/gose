@@ -3,7 +3,7 @@ module github.com/ThalesGroup/gose
 go 1.23.0
 
 require (
-	github.com/ThalesGroup/crypto11 v1.2.6-0.20250120111300-53e592d89e41
+	github.com/ThalesGroup/crypto11 v1.2.6-0.20250121102421-842e7b3e5ff9
 	github.com/google/uuid v1.6.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.10.0
