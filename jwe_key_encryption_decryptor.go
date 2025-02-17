@@ -22,80 +22,83 @@
 package gose
 
 import (
+	"crypto"
 	"crypto/aes"
 	"crypto/cipher"
+	"fmt"
 	"github.com/ThalesGroup/gose/jose"
+	"slices"
 )
+
+var supportedEncryptionAlgs = []jose.Enc{jose.EncA256GCM, jose.EncA128GCM, jose.EncA192GCM}
 
 // JweRsaKeyEncryptionDecryptorImpl implements RSA Key Encryption CEK mode.
 type JweRsaKeyEncryptionDecryptorImpl struct {
 	keystore AsymmetricDecryptionKeyStore
 }
 
-// Decrypt decrypts the given JWE returning the contained plaintext and any additional authentic associated data.
-func (d *JweRsaKeyEncryptionDecryptorImpl) Decrypt(jwe string) (plaintext, aad []byte, err error) {
-	var jweStruct jose.Jwe
-	if err = jweStruct.Unmarshal(jwe); err != nil {
-		return
+// Decrypt decrypts the given JWE returning the contained plaintext and any additional authentic
+// associated data.
+// This method follow recommendations of https://datatracker.ietf.org/doc/html/rfc7516#section-5.2
+func (d *JweRsaKeyEncryptionDecryptorImpl) Decrypt(jweRaw string, oaepHash crypto.Hash) (plaintext, aad []byte, err error) {
+	// deserialize jwe
+	var jwe jose.JweRfc7516Compact
+	if err = jwe.Unmarshal(jweRaw); err != nil {
+		return nil, nil, fmt.Errorf("error unmarshalling the jwe: %w", err)
 	}
 
 	// We do not support zip compression
-	if jweStruct.Header.Zip != "" {
+	if jwe.ProtectedHeader.Zip != "" {
 		err = ErrZipCompressionNotSupported
 		return
 	}
 
+	// check CEK encryption is supported
+	if ! slices.Contains(supportedEncryptionAlgs, jwe.ProtectedHeader.Enc) {
+		return nil, nil, ErrInvalidEncryption
+	}
+
+	// load key from keystore info before CEK decryption
 	var key AsymmetricDecryptionKey
-	key, err = d.keystore.Get(jweStruct.Header.Kid)
+	key, err = d.keystore.Get(jwe.ProtectedHeader.Kid)
 	if err != nil {
-		return
+		return nil, nil, fmt.Errorf("error getting key from keystore: %w", err)
 	}
 
 	// Check alg is as expected
-	if jweStruct.Header.Alg != key.Algorithm() {
-		err = ErrInvalidAlgorithm
+	if jwe.ProtectedHeader.Alg != key.Algorithm() {
+		return nil, nil, ErrInvalidAlgorithm
+	}
+
+	// Decrypt CEK
+	var cek []byte
+	if cek, err = key.Decrypt(jose.KeyOpsDecrypt, oaepHash, jwe.EncryptedKey); err != nil {
 		return
 	}
 
-	// Check the content encryption is a support algorithm
-	switch jweStruct.Header.Enc {
-	case jose.EncA128GCM, jose.EncA192GCM, jose.EncA256GCM:
-		// All good.
-	default:
-		err = ErrInvalidEncryption
-		return
-	}
-
-	// First decrypt the content encryption key.
-	var cekBytes []byte
-	cekBytes, err = key.Decrypt(jose.KeyOpsDecrypt, jweStruct.EncryptedKey)
-	if err != nil {
-		return
-	}
+	// decrypt cipher text with cek
 	var block cipher.Block
-	block, err = aes.NewCipher(cekBytes)
-	if err != nil {
-		return
+	if block, err = aes.NewCipher(cek); err != nil {
+		return nil, nil, fmt.Errorf("error creating AES cipher: %w", err)
 	}
-
 	var aead cipher.AEAD
-	aead, err = cipher.NewGCM(block)
+	if aead, err = cipher.NewGCM(block); err != nil {
+		return nil, nil, fmt.Errorf("error creating GCM AEAD: %w", err)
+	}
+	// concatenate ciphertext and tag for authenticated decryption
+	// [ciphertext + tag] is the result of the encryption and needs to be provided for decryption
+	ctAndTag := make([]byte, len(jwe.Ciphertext) + len(jwe.AuthenticationTag))
+	copy(ctAndTag[:len(jwe.Ciphertext)], jwe.Ciphertext)
+	copy(ctAndTag[len(jwe.Ciphertext):], jwe.AuthenticationTag)
+	// retrieve aad
+	if aad, err = jwe.ProtectedHeader.MarshalProtectedHeader(); err != nil {
+		return nil, nil, fmt.Errorf("error getting AAD: %w", err)
+	}
+	plaintext, err = aead.Open(nil, jwe.InitializationVector, ctAndTag, aad)
 	if err != nil {
 		return
 	}
 
-	// Decrypt the JWE payload.
-	ctAndTag := make([]byte, len(jweStruct.Ciphertext) + len(jweStruct.Tag))
-	copy(ctAndTag[:len(jweStruct.Ciphertext)], jweStruct.Ciphertext)
-	copy(ctAndTag[len(jweStruct.Ciphertext):], jweStruct.Tag)
-	plaintext, err = aead.Open(nil, jweStruct.Iv, ctAndTag, jweStruct.MarshalledHeader)
-	if err != nil {
-		return
-	}
-
-	if jweStruct.Header.OtherAad != nil {
-		aad = jweStruct.Header.OtherAad.Bytes()
-	}
 	return
 }
 

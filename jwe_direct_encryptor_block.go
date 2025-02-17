@@ -29,6 +29,7 @@ import (
 var (
 	cbcAlgToEncMap = map[jose.Alg]jose.Enc{
 		jose.AlgA256CBC: jose.EncA256CBC,
+		jose.AlgA256GCM: jose.EncA256GCM,
 	}
 )
 
@@ -41,7 +42,7 @@ type JweDirectEncryptorBlock struct {
 	jweVerifier JweHmacVerifierImpl
 }
 
-// makeJwe builds the JWE structure
+// makeJweProtectedHeader builds the JWE structure
 func (encryptor *JweDirectEncryptorBlock) makeJweProtectedHeader() *jose.JweProtectedHeader {
 	return &jose.JweProtectedHeader{
 		JwsHeader: jose.JwsHeader{
@@ -86,7 +87,9 @@ func (encryptor *JweDirectEncryptorBlock) Encrypt(plaintext, aad []byte) (string
 	// Create the JWE
 	// we store the length of the plaintext in the additional data held by the protected header.
 	// It can be used to return the proper plaintext after decryption.
-	jweProtectedHeader.OtherAad = &jose.Blob{B: uintToBytesBigEndian(uint64(len(plaintext)))}
+	jweProtectedHeader.OtherAad = &jose.Blob{
+		B: uintToBytesBigEndian(uint64(len(plaintext))),
+	}
 	jwe := &jose.JweRfc7516Compact{
 		ProtectedHeader:      *jweProtectedHeader,
 		EncryptedKey:         nil,

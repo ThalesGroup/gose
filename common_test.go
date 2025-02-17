@@ -1,7 +1,11 @@
 package gose
 
 import (
+	"encoding/base64"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
+	"strings"
+	"testing"
 )
 
 const (
@@ -37,4 +41,23 @@ func (mbm *MockBlockMode) CryptBlocks(dst, src []byte) {
 	default:
 		panic("unexpected mode")
 	}
+}
+
+func VerifyJWEStructure(t *testing.T, jwe string) {
+	require.NotEmpty(t, jwe)
+	// verify the structure
+	splits := strings.Split(jwe,  ".")
+	require.Equal(t, 5, len(splits))
+	// For direct encryption, the encrypted key is nil
+	// we expected an empty string for the second part of the JWE
+	require.Empty(t, splits[1])
+	// other parts should not be empty
+	require.NotEmpty(t, splits[0])
+	require.NotEmpty(t, splits[2])
+	require.NotEmpty(t, splits[3])
+	require.NotEmpty(t, splits[4])
+	// verify IV
+	iv, err := base64.RawURLEncoding.DecodeString(splits[2])
+	require.NoError(t, err)
+	require.NotEmpty(t, iv)
 }

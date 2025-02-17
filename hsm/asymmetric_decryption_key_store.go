@@ -21,7 +21,7 @@ func (a *AsymmetricDecryptionKeyStore) Get(kid string) (k gose.AsymmetricDecrypt
 		return nil, gose.ErrInvalidKeyType
 	}
 	return &AsymmetricDecryptionKey{
-		kid: kid,
+		kid: []byte(kid),
 		ctx: a.ctx,
 		key: rsaKeyPair,
 	}, nil

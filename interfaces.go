@@ -97,14 +97,14 @@ type AsymmetricEncryptionKey interface {
 	MarshalableKey
 	CertifiableKey
 	Algorithmed
-	Encrypt(jose.KeyOps, []byte) ([]byte, error)
+	Encrypt(ops jose.KeyOps, hash crypto.Hash, bytes []byte) ([]byte, error)
 }
 
 // AsymmetricDecryptionKey provides asymmetric decryption (private key) capabilities.
 type AsymmetricDecryptionKey interface {
 	Key
 	Algorithmed
-	Decrypt(jose.KeyOps, []byte) ([]byte, error)
+	Decrypt(ops jose.KeyOps, hash crypto.Hash, bytes []byte) ([]byte, error)
 	// Encryptor get the matching encryption key.
 	Encryptor() (AsymmetricEncryptionKey, error)
 }

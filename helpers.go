@@ -307,6 +307,8 @@ var inverseOps = map[jose.KeyOps]jose.KeyOps{
 	jose.KeyOpsVerify:  jose.KeyOpsSign,
 }
 
+// TODO this method always return PS algortihm for signature but never RSA alg for encryption.
+//  need to find a way to return encryption alg
 func rsaBitsToAlg(bitLen int) jose.Alg {
 	/* Based on NIST recommendations from 2016. */
 	if bitLen >= 15360 {
@@ -455,6 +457,9 @@ func JwkFromPublicKey(publicKey crypto.PublicKey, operations []jose.KeyOps, cert
 		if v.E > math.MaxInt32 {
 			return nil, ErrInvalidExponent
 		}
+		// TODO add the possibility to choose the algorithm with an input
+		//  here, only PS is returned, nothing about encryption
+
 		alg := rsaBitsToAlg(v.N.BitLen())
 		/* Key generation. */
 		var rsa jose.PublicRsaKey
@@ -574,8 +579,15 @@ func LoadSymmetricAEAD(jwk jose.Jwk, required []jose.KeyOps) (a cipher.AEAD, err
 	}
 }
 
-// JwtToString returns the full string of the Jwt or error
-func JwtToString(jwt jose.Jwt) (full string, err error) {
-
+// GetALFromAAD takes the AAD field of a JWE and compute the AL field
+// AL is the octet string of the number of bits in AAD expressed as a big endian 64-bit unsigned integer.
+// For example, if AAD is 51 bytes long, which is 408 bits long, the octet string AL, which is the number of bits in AAD expressed as a big endian 64 bit unsigned integer is [0, 0, 0, 0, 0, 0, 1, 152].
+func GetALFromAAD(aad []byte) (al []byte) {
+	// Convert the length to bits
+	aadLengthBits := uint64(len(aad) * 8) // 51 bytes * 8 bits/byte = 408 bits
+	// Create a byte slice to hold the big-endian 64-bit unsigned integer
+	al = make([]byte, 8)
+	// Convert the length in bits to a big-endian 64-bit unsigned integer
+	binary.BigEndian.PutUint64(al, aadLengthBits)
 	return
 }

@@ -259,6 +259,15 @@ func (jwe *Jwe) Marshal() string {
 }
 
 // Marshal a JWE to it's compact representation.
+//  Follow these steps:
+//   1. encode BASE64URL(UTF8(JWE ProtectedHeader))
+//   2. Encode BASE64URL(JWE Encrypted Key)
+//   3. Encode BASE64URL(JWE Initialization Vector)
+//   4. Create AAD, which is already ASCII(BASE64URL(UTF8(JWE Protected Header))).
+//   5. encode AL as an octet string for the unsigned int. Example : [0, 0, 0, 0, 0, 0, 1, 152].
+//   6. Encode BASE64URL(JWE Ciphertext).
+//   7. Encode BASE64URL(JWE Authentication Tag).
+// TODO add the aad and the al
 func (jwe *JweRfc7516Compact) Marshal() (marshalledJwe string, err error) {
 	var marshalledHeader []byte
 	if marshalledHeader, err = jwe.ProtectedHeader.MarshalProtectedHeader(); err != nil {

@@ -26,7 +26,8 @@ Examples are provided under the `/examples` folder to illustrate correct use of 
 ## Vulnerability check
 
 ```sh
-$ govulncheck ./...                                                                                                                       ─╯
+$ govulncheck ./...
+
 Scanning your code and 139 packages across 9 dependent modules for known vulnerabilities...
 
 No vulnerabilities found.

@@ -23,90 +23,138 @@ package gose
 
 import (
 	"crypto"
-	"crypto/rand"
+	"crypto/aes"
+	"crypto/cipher"
 	"crypto/rsa"
+	"fmt"
 	"github.com/ThalesGroup/gose/jose"
+	"io"
 )
+
+const cekSize uint8 = 32
+
+const ivSize uint8 = 12
+
+const cekAlgorithm = jose.AlgA256GCM
 
 // JweRsaKeyEncryptionEncryptorImpl implements RSA Key Encryption CEK mode.
 type JweRsaKeyEncryptionEncryptorImpl struct {
-	recipientJwk jose.Jwk
-	recipientKey *rsa.PublicKey
+	rsaPublicKey *rsa.PublicKey
+	rsaPublicKid string
+	rsaAlg jose.Alg
 	cekAlg jose.Alg
+	randomSource io.Reader
 }
 
-// Encrypt encrypts the given plaintext into a compact JWE. Optional authenticated data can be included which is appended
-// to the JWE protected header.
-func (e *JweRsaKeyEncryptionEncryptorImpl) Encrypt(plaintext, aad []byte) (string, error) {
-	keyGenerator := &AuthenticatedEncryptionKeyGenerator{}
-	cek, jwk, err := keyGenerator.Generate(e.cekAlg, []jose.KeyOps{jose.KeyOpsDecrypt, jose.KeyOpsEncrypt})
+// Encrypt encrypts the given plaintext into a compact JWE.
+// The Content Encryption Key is encrypted to the recipient using the RSAES-OAEP algorithm to
+// produce the JWE Encrypted Key.
+// Authenticated encryption is performed on the plaintext using the AES GCM algorithm with a 256-bit
+// key to produce the ciphertext and the Authentication Tag.
+func (e *JweRsaKeyEncryptionEncryptorImpl) Encrypt(plaintext []byte, oaepHash crypto.Hash) (jwe string, err error) {
+	// create the protected header
+	// {"alg":"RSA-OAEP","enc":"A256GCM"}
+	protectedHeader := e.makeJweProtectedHeader()
+
+	// generate the 256-bit CEK, 32 bytes long
+	cek := make([]byte, cekSize)
+	if _, err = e.randomSource.Read(cek); err != nil {
+		return "", fmt.Errorf("unable to read random source to generate the CEK: %w", err)
+	}
+
+	// encrypt the CEK using the recipient public key and RSAES OAEP
+	// SHA1 is still safe when used in the construction of OAEP.
+	encryptedCEK, err := rsa.EncryptOAEP(oaepHash.New(), e.randomSource, e.rsaPublicKey, cek, nil)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to encrypt CEK: %w", err)
 	}
-	cekJwk := jwk.(*jose.OctSecretKey)
 
-	nonce, err := cek.GenerateNonce()
+	// generate a random 96-bit initialization vector
+	iv := make([]byte, ivSize)
+	if _, err = e.randomSource.Read(iv); err != nil {
+		return "", fmt.Errorf("unable to read random source to generate the IV: %w", err)
+	}
+
+	// Create AAD equal to ASCII(BASE64URL(UTF8(JWE Protected Header))).
+	var aad []byte
+	if aad, err = protectedHeader.MarshalProtectedHeader(); err != nil {
+		return "", fmt.Errorf("error marshalling the JWE Header: %w", err)
+	}
+
+	// encrypt the plaintext using the cek
+	var blockCipher cipher.Block
+	blockCipher, err = aes.NewCipher(cek); if err != nil {
+		return "", fmt.Errorf("error creating AES cipher: %w", err)
+	}
+	var aesGCM cipher.AEAD
+	aesGCM, err = cipher.NewGCM(blockCipher); if err != nil {
+		return "", fmt.Errorf("error creating GCM: %w", err)
+	}
+	var aesGCMCryptor AeadEncryptionKey
+	if aesGCMCryptor, err = NewAesGcmCryptor(aesGCM, e.randomSource, "", cekAlgorithm, []jose.KeyOps{jose.KeyOpsEncrypt}); err != nil {
+		return "", fmt.Errorf("error creating AES GCM Cryptor: %w", err)
+	}
+	ciphertext, tag, err := aesGCMCryptor.Seal(jose.KeyOpsEncrypt, iv, plaintext, aad);
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("error encrypting the plaintext: %w", err)
 	}
 
-	var blob *jose.Blob
-	var customHeaderFields jose.JweCustomHeaderFields
-	if len(aad) > 0 {
-		blob = &jose.Blob{B: aad}
-		customHeaderFields = jose.JweCustomHeaderFields{
-			OtherAad: blob,
-		}
+	// create the compact representation of the jwe using the parameters above
+	jweData:= &jose.JweRfc7516Compact{
+		ProtectedHeader:      *protectedHeader,
+		EncryptedKey:         encryptedCEK,
+		InitializationVector: iv,
+		Ciphertext:           ciphertext,
+		AuthenticationTag:    tag,
+	}
+	if jwe, err = jweData.Marshal(); err != nil {
+		return "", fmt.Errorf("error marshalling the JWE: %w", err)
 	}
 
-	encryptedKey, err := rsa.EncryptOAEP(crypto.SHA1.New(), rand.Reader, e.recipientKey, cekJwk.K.Bytes(), nil)
-	if err != nil {
-		return "", err
-	}
+	return
+}
 
-	jwe := &jose.Jwe{
-		Header: jose.JweHeader{
-			JwsHeader: jose.JwsHeader{
-				Alg: jose.AlgRSAOAEP,
-				Kid: e.recipientJwk.Kid(),
-			},
-			Enc:                   gcmAlgToEncMap[cekJwk.Alg()],
-			JweCustomHeaderFields: customHeaderFields,
+// makeJweProtectedHeader builds the JWE structure
+func (e *JweRsaKeyEncryptionEncryptorImpl) makeJweProtectedHeader() *jose.JweProtectedHeader {
+	return &jose.JweProtectedHeader{
+		JwsHeader: jose.JwsHeader{
+			// AlgRSAOAEP = "RSA-OAEP"
+			Alg: e.rsaAlg,
+			Kid: e.rsaPublicKid,
+			Typ: "JWT",
+			Cty: "JWT",
 		},
-		EncryptedKey: encryptedKey,
-		Iv:           nonce,
-		Plaintext:    plaintext,
+		// AlgA256GCM Alg = "A256GCM"
+		Enc: cbcAlgToEncMap[cekAlgorithm],
 	}
-	if err = jwe.MarshalHeader(); err != nil {
-		return "", err
-	}
-
-	if jwe.Ciphertext, jwe.Tag, err = cek.Seal(jose.KeyOpsEncrypt, jwe.Iv, jwe.Plaintext, jwe.MarshalledHeader); err != nil {
-		return "", err
-	}
-	return jwe.Marshal(), nil
 }
 
 // NewJweRsaKeyEncryptionEncryptorImpl returns an instance of JweRsaKeyEncryptionEncryptorImpl configured with the given
 // JWK.
-func NewJweRsaKeyEncryptionEncryptorImpl(recipient jose.Jwk, contentEncryptionAlg jose.Alg) (*JweRsaKeyEncryptionEncryptorImpl, error) {
-	if _, ok := authenticatedEncryptionAlgs[contentEncryptionAlg]; !ok {
-		return nil, ErrInvalidAlgorithm
-	}
-	if !isSubset(recipient.Ops(), []jose.KeyOps{jose.KeyOpsEncrypt})  {
+// rsaPublicKeyRecipient is the jwk describing the public key that will be used to encrypt the CEK.
+// randomSource is the random generator used by :
+//   - the RSA OAEP algorithm for entropy source for each encryption operation on CEKs
+//   - the encryption of the data performed by the CEK with AES GCM algorithm, for the IV
+func NewJweRsaKeyEncryptionEncryptorImpl(rsaPublicKeyRecipient jose.Jwk, randomSource io.Reader) (*JweRsaKeyEncryptionEncryptorImpl, error) {
+	// check if required operation is supported
+	if !isSubset(rsaPublicKeyRecipient.Ops(), []jose.KeyOps{jose.KeyOpsEncrypt})  {
 		return nil, ErrInvalidOperations
 	}
-	kek, err := LoadPublicKey(recipient, validEncryptionOpts)
+	// create the asymmetric public key structure from the recipient
+	kek, err := LoadPublicKey(rsaPublicKeyRecipient, validEncryptionOpts)
 	if err != nil {
 		return nil, err
 	}
+	// parse for rsa
 	rsaKek, ok := kek.(*rsa.PublicKey)
 	if !ok {
 		return nil, ErrInvalidKeyType
 	}
+
 	return &JweRsaKeyEncryptionEncryptorImpl{
-		recipientKey: rsaKek,
-		recipientJwk: recipient,
-		cekAlg: contentEncryptionAlg,
+		rsaPublicKey: rsaKek,
+		rsaAlg: rsaPublicKeyRecipient.Alg(),
+		rsaPublicKid: rsaPublicKeyRecipient.Kid(),
+		randomSource: randomSource,
 	}, nil
 }

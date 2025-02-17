@@ -2,18 +2,18 @@ package gose
 
 import (
 	"bytes"
+	"crypto"
+	"crypto/rand"
 	"github.com/ThalesGroup/gose/jose"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"math/rand"
-	"reflect"
 	"testing"
 )
 
 const (
- 	// See https://tools.ietf.org/html/rfc7516#appendix-A.1
- 	oaepJweFromSpec = "eyJhbGciOiJSU0EtT0FFUCIsImVuYyI6IkEyNTZHQ00ifQ.OKOawDo13gRp2ojaHV7LFpZcgV7T6DVZKTyKOMTYUmKoTCVJRgckCL9kiMT03JGeipsEdY3mx_etLbbWSrFr05kLzcSr4qKAq7YN7e9jwQRb23nfa6c9d-StnImGyFDbSv04uVuxIp5Zms1gNxKKK2Da14B8S4rzVRltdYwam_lDp5XnZAYpQdb76FdIKLaVmqgfwX7XWRxv2322i-vDxRfqNzo_tETKzpVLzfiwQyeyPGLBIO56YJ7eObdv0je81860ppamavo35UgoRdbYaBcoh9QcfylQr66oc6vFWXRcZ_ZT2LawVCWTIy3brGPi6UklfCpIMfIjf7iGdXKHzg.48V1_ALb6US04U3b.5eym8TW_c8SuK0ltJ3rpYIzOeDQz7TALvtu6UG9oMo4vpzs9tX_EFShS8iB7j6jiSdiwkIr3ajwQzaBtQD_A.XFBoMYUZodetZdvTiFvSkQ"
- 	jwkFromSpec = `
+	// See https://tools.ietf.org/html/rfc7516#appendix-A.1
+	oaepJweFromSpec = "eyJhbGciOiJSU0EtT0FFUCIsImVuYyI6IkEyNTZHQ00ifQ.OKOawDo13gRp2ojaHV7LFpZcgV7T6DVZKTyKOMTYUmKoTCVJRgckCL9kiMT03JGeipsEdY3mx_etLbbWSrFr05kLzcSr4qKAq7YN7e9jwQRb23nfa6c9d-StnImGyFDbSv04uVuxIp5Zms1gNxKKK2Da14B8S4rzVRltdYwam_lDp5XnZAYpQdb76FdIKLaVmqgfwX7XWRxv2322i-vDxRfqNzo_tETKzpVLzfiwQyeyPGLBIO56YJ7eObdv0je81860ppamavo35UgoRdbYaBcoh9QcfylQr66oc6vFWXRcZ_ZT2LawVCWTIy3brGPi6UklfCpIMfIjf7iGdXKHzg.48V1_ALb6US04U3b.5eym8TW_c8SuK0ltJ3rpYIzOeDQz7TALvtu6UG9oMo4vpzs9tX_EFShS8iB7j6jiSdiwkIr3ajwQzaBtQD_A.XFBoMYUZodetZdvTiFvSkQ"
+	jwkFromSpec     = `
 {
       "kty":"RSA",
       "kid":"1",
@@ -28,62 +28,49 @@ const (
       "dq":"Dq0gfgJ1DdFGXiLvQEZnuKEN0UUmsJBxkjydc3j4ZYdBiMRAy86x0vHCjywcMlYYg4yoC4YZa9hNVcsjqA3FeiL19rk8g6Qn29Tt0cj8qqyFpz9vNDBUfCAiJVeESOjJDZPYHdHY8v1b-o-Z2X5tvLx-TCekf7oxyeKDUqKWjis",
       "qi":"VIMpMYbPf47dT1w_zDUXfPimsSegnMOA1zTaX7aGk_8urY6R8-ZW1FxU7AlWAyLWybqq6t16VFd7hQd0y6flUK4SlOydB61gwanOsXGOAOv82cHq0E3eL4HrtZkUuKvnPrMnsUUFlfUdybVzxyjz9JF_XyaY14ardLSjf4L_FNY"
 }`
- 	)
+)
 
-// Known answer test (KAT). See https://tools.ietf.org/html/rfc7516#appendix-A.1
-func TestJweRsaKeyEncryptionDecryptorImpl_Decrypt_KAT(t *testing.T) {
-	// load JWK
+func generateDecryptor(t *testing.T) (decryptor *JweRsaKeyEncryptionDecryptorImpl) {
+	// load testing JWK
 	buf := bytes.NewReader([]byte(jwkFromSpec))
 	jwk, err := LoadJwk(buf, nil)
 	require.NoError(t, err)
 	key, err := NewRsaDecryptionKey(jwk)
 	require.NoError(t, err)
-	store, err := NewAsymmetricDecryptionKeyStoreImpl(map[string]AsymmetricDecryptionKey {key.Kid():key})
+	store, err := NewAsymmetricDecryptionKeyStoreImpl(map[string]AsymmetricDecryptionKey{key.Kid(): key})
 	require.NoError(t, err)
-	decryptor := NewJweRsaKeyEncryptionDecryptorImpl(store)
-	pt, aad, err := decryptor.Decrypt(oaepJweFromSpec)
-	require.NoError(t, err)
-	assert.Equal(t, "The true sign of intelligence is not knowledge but imagination.", string(pt))
-	assert.Len(t, aad, 0)
+	decryptor = NewJweRsaKeyEncryptionDecryptorImpl(store)
+
+	return
 }
 
-func TestJweRsaKeyEncryptionDecryptorImpl_RoundTrip(t *testing.T) {
-	params := []struct {
-		contentEncryptionAlg jose.Alg
-	} {
-		{
-			contentEncryptionAlg: jose.AlgA256GCM,
-		},
-		{
-			contentEncryptionAlg: jose.AlgA192GCM,
-		},
-		{
-			contentEncryptionAlg: jose.AlgA128GCM,
-		},
-	}
-	for _, testCase := range params {
-		t.Run(reflect.TypeOf(testCase.contentEncryptionAlg).Name(), func(tt *testing.T){
-			randData := make([]byte, 32)
-			_, err := rand.Read(randData)
-			require.NoError(tt, err)
-			generator := &RsaKeyDecryptionKeyGenerator{}
-			decrytionKey, err := generator.Generate(jose.AlgRSAOAEP, 2048, []jose.KeyOps{jose.KeyOpsDecrypt})
-			require.NoError(tt, err)
-			encryptionKey, err := decrytionKey.Encryptor()
-			require.NoError(tt, err)
-			publicJwk, err := encryptionKey.Jwk()
-			require.NoError(tt, err)
-			encryptor, err := NewJweRsaKeyEncryptionEncryptorImpl(publicJwk, testCase.contentEncryptionAlg)
-			require.NoError(t, err)
-			ct, err := encryptor.Encrypt(randData, []byte("aad"))
-			require.NoError(t, err)
-			store, err := NewAsymmetricDecryptionKeyStoreImpl(map[string]AsymmetricDecryptionKey {decrytionKey.Kid(): decrytionKey})
-			require.NoError(t, err)
-			decryptor := NewJweRsaKeyEncryptionDecryptorImpl(store)
-			pt, aad, err := decryptor.Decrypt(ct)
-			require.NoError(t, err)
-			assert.Equal(t, randData, pt)
-			assert.Equal(t, []byte("aad"), aad)
-		})
-	}
+// Known answer test (KAT). See https://tools.ietf.org/html/rfc7516#appendix-A.1
+func TestJweRsaKeyEncryptionDecryptorImpl_Decrypt_KAT(t *testing.T) {
+	decryptor := generateDecryptor(t)
+	pt, aad, err := decryptor.Decrypt(oaepJweFromSpec, crypto.SHA256)
+	require.NoError(t, err)
+	assert.Equal(t, "The true sign of intelligence is not knowledge but imagination.", string(pt))
+	assert.Len(t, aad, 46)
+}
+
+func TestJweRsaKeyOAEPEncryptionDecryption(t *testing.T) {
+	input := []byte("The true sign of intelligence is not knowledge but imagination.")
+
+	generator := &RsaKeyDecryptionKeyGenerator{}
+	decryptionKey, err := generator.Generate(jose.AlgRSAOAEP, 2048, []jose.KeyOps{jose.KeyOpsDecrypt})
+	require.NoError(t, err)
+	encryptionKey, err := decryptionKey.Encryptor()
+	require.NoError(t, err)
+	publicJwk, err := encryptionKey.Jwk()
+	require.NoError(t, err)
+	encryptor, err := NewJweRsaKeyEncryptionEncryptorImpl(publicJwk, rand.Reader)
+	require.NoError(t, err)
+	ct, err := encryptor.Encrypt(input, crypto.SHA256)
+	require.NoError(t, err)
+	store, err := NewAsymmetricDecryptionKeyStoreImpl(map[string]AsymmetricDecryptionKey{decryptionKey.Kid(): decryptionKey})
+	require.NoError(t, err)
+	decryptor := NewJweRsaKeyEncryptionDecryptorImpl(store)
+	pt, _, err := decryptor.Decrypt(ct, crypto.SHA256)
+	require.NoError(t, err)
+	assert.Equal(t, input, pt)
 }
