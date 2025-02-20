@@ -1,6 +1,6 @@
 module github.com/ThalesGroup/gose
 
-go 1.23.0
+go 1.23.6
 
 require (
 	github.com/ThalesGroup/crypto11 v1.3.0
