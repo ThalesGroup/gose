@@ -28,6 +28,7 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/ThalesGroup/gose/jose"
 )
@@ -132,6 +133,9 @@ func NewJwksKeyStore(issuerList, url string) *JwksTrustStore {
 	return &JwksTrustStore{
 		url:          url,
 		inputIssuers: issuerList,
-		client:       http.DefaultClient,
+		client:       &http.Client {
+			// TODO: modify Get method to accept a context to manage timeouts.
+			Timeout: time.Second * 30,
+		},
 	}
 }

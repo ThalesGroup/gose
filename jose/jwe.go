@@ -174,7 +174,7 @@ func (jweHeader *HeaderRfc7516) MarshallHeader() (marshalledHeader []byte, err e
 // DEPRECATED : does not match the proper JWE structure as defined in rfc 7516
 func (jwe *Jwe) Unmarshal(src string) (err error) {
 	/* Compact JWS encoding. */
-	parts := strings.Split(src, ".")
+	parts := strings.SplitN(src, ".", 5)
 	if len(parts) != 5 {
 		err = ErrJweFormat
 		return
@@ -211,7 +211,7 @@ func (jwe *JweRfc7516Compact) Unmarshal(src string) (err error) {
 	//   o  Initialization Vector
 	//   o  Ciphertext
 	//   o  Authentication Tag
-	parts := strings.Split(src, ".")
+	parts := strings.SplitN(src, ".", 5)
 	if len(parts) != 5 {
 		err = ErrJweFormat
 		return
