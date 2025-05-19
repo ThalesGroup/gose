@@ -87,18 +87,18 @@ func intersection(first []jose.KeyOps, second []jose.KeyOps) []jose.KeyOps {
 	return result
 }
 
-//LoadPrivateKey loads the jwk into a crypto.Signer for performing signing operations
+// LoadPrivateKey loads the jwk into a crypto.Signer for performing signing operations
 func LoadPrivateKey(jwk jose.Jwk, required []jose.KeyOps) (crypto.Signer, error) {
 	privateKeyAlgs := map[jose.Alg]bool{
-		jose.AlgRS256: true,
-		jose.AlgRS384: true,
-		jose.AlgRS512: true,
-		jose.AlgPS256: true,
-		jose.AlgPS384: true,
-		jose.AlgPS512: true,
-		jose.AlgES256: true,
-		jose.AlgES384: true,
-		jose.AlgES512: true,
+		jose.AlgRS256:   true,
+		jose.AlgRS384:   true,
+		jose.AlgRS512:   true,
+		jose.AlgPS256:   true,
+		jose.AlgPS384:   true,
+		jose.AlgPS512:   true,
+		jose.AlgES256:   true,
+		jose.AlgES384:   true,
+		jose.AlgES512:   true,
 		jose.AlgRSAOAEP: true,
 	}
 
@@ -149,18 +149,18 @@ func LoadPrivateKey(jwk jose.Jwk, required []jose.KeyOps) (crypto.Signer, error)
 	}
 }
 
-//LoadPublicKey loads jwk as a public key for cryptographic verification operations.
+// LoadPublicKey loads jwk as a public key for cryptographic verification operations.
 func LoadPublicKey(jwk jose.Jwk, required []jose.KeyOps) (crypto.PublicKey, error) {
 	publicKeyAlgs := map[jose.Alg]bool{
-		jose.AlgRS256: true,
-		jose.AlgRS384: true,
-		jose.AlgRS512: true,
-		jose.AlgPS256: true,
-		jose.AlgPS384: true,
-		jose.AlgPS512: true,
-		jose.AlgES256: true,
-		jose.AlgES384: true,
-		jose.AlgES512: true,
+		jose.AlgRS256:   true,
+		jose.AlgRS384:   true,
+		jose.AlgRS512:   true,
+		jose.AlgPS256:   true,
+		jose.AlgPS384:   true,
+		jose.AlgPS512:   true,
+		jose.AlgES256:   true,
+		jose.AlgES384:   true,
+		jose.AlgES512:   true,
 		jose.AlgRSAOAEP: true,
 	}
 	if _, ok := publicKeyAlgs[jwk.Alg()]; !ok {
@@ -199,10 +199,10 @@ func LoadPublicKey(jwk jose.Jwk, required []jose.KeyOps) (crypto.PublicKey, erro
 	}
 }
 
-//LoadJws loads signature, or errors
+// LoadJws loads signature, or errors
 func LoadJws(jws string) (protectedHeader *jose.JwsHeader, header []byte, data []byte, payload []byte, signature []byte, err error) {
 	var tmp jose.JwsHeader
-	parts := strings.Split(jws, ".")
+	parts := strings.SplitN(jws, ".", 3)
 	if len(parts) != 3 {
 		return nil, nil, nil, nil, nil, ErrInvalidJwsCompactEncoding
 	}
@@ -226,7 +226,7 @@ func LoadJws(jws string) (protectedHeader *jose.JwsHeader, header []byte, data [
 	return
 }
 
-//CalculateKeyID deterministically calculates the ID for the given jwk
+// CalculateKeyID deterministically calculates the ID for the given jwk
 func CalculateKeyID(jwk jose.Jwk) (string, error) {
 	/* Deterministic calculation of a jwk's identity. */
 	switch typed := jwk.(type) {
@@ -278,7 +278,7 @@ func CalculateKeyID(jwk jose.Jwk) (string, error) {
 	}
 }
 
-//LoadJwk load io.ReadSeeker as a JWK or error
+// LoadJwk load io.ReadSeeker as a JWK or error
 func LoadJwk(reader io.ReadSeeker, required []jose.KeyOps) (jwk jose.Jwk, err error) {
 	if jwk, err = jose.UnmarshalJwk(reader); err != nil {
 		return
@@ -289,7 +289,7 @@ func LoadJwk(reader io.ReadSeeker, required []jose.KeyOps) (jwk jose.Jwk, err er
 	return
 }
 
-//LoadJwkFromFile loads file as JWK or error
+// LoadJwkFromFile loads file as JWK or error
 func LoadJwkFromFile(file string, required []jose.KeyOps) (jose.Jwk, error) {
 	/* Load jwk from file. */
 	fd, err := os.Open(file)
@@ -308,7 +308,8 @@ var inverseOps = map[jose.KeyOps]jose.KeyOps{
 }
 
 // TODO this method always return PS algortihm for signature but never RSA alg for encryption.
-//  need to find a way to return encryption alg
+//
+//	need to find a way to return encryption alg
 func rsaBitsToAlg(bitLen int) jose.Alg {
 	/* Based on NIST recommendations from 2016. */
 	if bitLen >= 15360 {
@@ -332,7 +333,7 @@ func ecBitsToAlg(bitLen int) jose.Alg {
 	}
 }
 
-//PublicFromPrivate extracts public jwk from private jwk in JWK format
+// PublicFromPrivate extracts public jwk from private jwk in JWK format
 func PublicFromPrivate(in jose.Jwk) (jose.Jwk, error) {
 	var out jose.Jwk
 	switch k := in.(type) {
@@ -363,7 +364,7 @@ func PublicFromPrivate(in jose.Jwk) (jose.Jwk, error) {
 	return out, nil
 }
 
-//JwkToString return JWK as string
+// JwkToString return JWK as string
 func JwkToString(jwk jose.Jwk) (string, error) {
 	b, err := json.Marshal(jwk)
 	if err != nil {
@@ -396,7 +397,7 @@ func concatByteArrays(slices [][]byte) []byte {
 	return tmp
 }
 
-//JwkFromPrivateKey builds JWK, from a crypto.Signer, with certificates, and scoped to certain operations,  or errors
+// JwkFromPrivateKey builds JWK, from a crypto.Signer, with certificates, and scoped to certain operations,  or errors
 func JwkFromPrivateKey(privateKey crypto.Signer, operations []jose.KeyOps, certs []*x509.Certificate) (jose.Jwk, error) {
 	var jwk jose.Jwk
 	switch v := privateKey.(type) {
@@ -449,7 +450,7 @@ func JwkFromPrivateKey(privateKey crypto.Signer, operations []jose.KeyOps, certs
 	return jwk, nil
 }
 
-//JwkFromPublicKey builds public JWK, from a crypto.Signer, with certificates, and scoped to certain operations,  or errors
+// JwkFromPublicKey builds public JWK, from a crypto.Signer, with certificates, and scoped to certain operations,  or errors
 func JwkFromPublicKey(publicKey crypto.PublicKey, operations []jose.KeyOps, certs []*x509.Certificate) (jose.Jwk, error) {
 	var jwk jose.Jwk
 	switch v := publicKey.(type) {

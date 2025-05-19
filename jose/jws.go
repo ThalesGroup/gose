@@ -124,7 +124,7 @@ func (jws *Jws) Body() (body string, err error) {
 //Unmarshal to body string, or error
 func (jws *Jws) Unmarshal(src string) (body string, err error) {
 	/* Compact JWS encoding. */
-	parts := strings.Split(src, ".")
+	parts := strings.SplitN(src, ".", 3)
 	if len(parts) != 3 {
 		err = ErrJwtFormat
 		return

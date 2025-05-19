@@ -47,7 +47,7 @@ func generateDecryptor(t *testing.T) (decryptor *JweRsaKeyEncryptionDecryptorImp
 // Known answer test (KAT). See https://tools.ietf.org/html/rfc7516#appendix-A.1
 func TestJweRsaKeyEncryptionDecryptorImpl_Decrypt_KAT(t *testing.T) {
 	decryptor := generateDecryptor(t)
-	pt, aad, err := decryptor.Decrypt(oaepJweFromSpec, crypto.SHA256)
+	pt, aad, err := decryptor.Decrypt(oaepJweFromSpec, crypto.SHA1)
 	require.NoError(t, err)
 	assert.Equal(t, "The true sign of intelligence is not knowledge but imagination.", string(pt))
 	assert.Len(t, aad, 46)
