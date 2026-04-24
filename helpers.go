@@ -105,7 +105,7 @@ func LoadPrivateKey(jwk jose.Jwk, required []jose.KeyOps) (crypto.Signer, error)
 	if _, ok := privateKeyAlgs[jwk.Alg()]; !ok {
 		return nil, ErrInvalidKeyType
 	}
-	if required != nil && len(required) > 0 && !isSubset(jwk.Ops(), required) {
+	if len(required) > 0 && !isSubset(jwk.Ops(), required) {
 		return nil, ErrInvalidOperations
 	}
 	switch v := jwk.(type) {
@@ -166,7 +166,7 @@ func LoadPublicKey(jwk jose.Jwk, required []jose.KeyOps) (crypto.PublicKey, erro
 	if _, ok := publicKeyAlgs[jwk.Alg()]; !ok {
 		return nil, ErrInvalidKeyType
 	}
-	if required != nil && len(required) > 0 && !isSubset(jwk.Ops(), required) {
+	if len(required) > 0 && !isSubset(jwk.Ops(), required) {
 		return nil, ErrInvalidOperations
 	}
 	switch v := jwk.(type) {
@@ -554,7 +554,7 @@ func loadSymmetricBytes(jwk jose.Jwk, required []jose.KeyOps) (key []byte, err e
 		err = ErrInvalidKeyType
 		return
 	}
-	if required != nil && len(required) > 0 && !isSubset(jwk.Ops(), required) {
+	if len(required) > 0 && !isSubset(jwk.Ops(), required) {
 		err = ErrInvalidOperations
 		return
 	}
