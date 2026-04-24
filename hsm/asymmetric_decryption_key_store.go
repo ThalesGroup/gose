@@ -29,7 +29,7 @@ func (a *AsymmetricDecryptionKeyStore) Get(kid string) (k gose.AsymmetricDecrypt
 
 // NewAsymmetricDecryptionKeyStore creates an instance of AsymmetricDecryptionKeyStore.
 func NewAsymmetricDecryptionKeyStore(ctx *crypto11.Context) *AsymmetricDecryptionKeyStore {
-	return &AsymmetricDecryptionKeyStore {
+	return &AsymmetricDecryptionKeyStore{
 		ctx: ctx,
 	}
 }
