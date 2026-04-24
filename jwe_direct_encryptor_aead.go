@@ -25,6 +25,8 @@ import (
 	"github.com/ThalesGroup/gose/jose"
 )
 
+// gcmAlgToEncMap maps GCM key algorithms to their JWE enc header values.
+// Initialized once at package startup — treat as read-only; mutating it is a data race.
 var (
 	gcmAlgToEncMap = map[jose.Alg]jose.Enc{
 		jose.AlgA128GCM: jose.EncA128GCM,

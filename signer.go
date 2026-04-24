@@ -42,7 +42,8 @@ type SigningKeyImpl struct {
 	certs []*x509.Certificate
 }
 
-/* Alg to digest map. */
+// algToOptsMap maps each supported signing algorithm to its crypto.SignerOpts.
+// Initialized once at package startup — treat as read-only; mutating it is a data race.
 var algToOptsMap = map[jose.Alg]crypto.SignerOpts{
 	jose.AlgPS256: &rsa.PSSOptions{SaltLength: 32, Hash: crypto.SHA256},
 	jose.AlgPS384: &rsa.PSSOptions{SaltLength: 48, Hash: crypto.SHA384},

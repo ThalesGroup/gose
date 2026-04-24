@@ -26,6 +26,8 @@ import (
 	"github.com/ThalesGroup/gose/jose"
 )
 
+// cbcAlgToEncMap maps CBC/GCM key algorithms to their JWE enc header values.
+// Initialized once at package startup — treat as read-only; mutating it is a data race.
 var (
 	cbcAlgToEncMap = map[jose.Alg]jose.Enc{
 		jose.AlgA256CBC: jose.EncA256CBC,
