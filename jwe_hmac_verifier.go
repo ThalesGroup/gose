@@ -24,6 +24,7 @@ package gose
 import (
 	"bytes"
 	"fmt"
+
 	"github.com/ThalesGroup/gose/jose"
 )
 
@@ -38,7 +39,7 @@ func computeAL(aad []byte) []byte {
 	return uintToBytesBigEndian(uint64(len(aad)))
 }
 
-func (verifier *JweHmacVerifierImpl) VerifyCompact(jwe jose.JweRfc7516Compact) (result bool, err error){
+func (verifier *JweHmacVerifierImpl) VerifyCompact(jwe jose.JweRfc7516Compact) (result bool, err error) {
 	// AAD
 	//  = ASCII(BASE64URL(UTF8(JWE Protected Header)))
 	var aad []byte
@@ -50,7 +51,7 @@ func (verifier *JweHmacVerifierImpl) VerifyCompact(jwe jose.JweRfc7516Compact) (
 	inputHmac := concatByteArrays([][]byte{aad, jwe.InitializationVector, jwe.Ciphertext, computeAL(aad)})
 	// compute the hash of it
 	outputHmac := verifier.hmacKey.Hash(inputHmac)
-	return bytes.Compare(outputHmac, jwe.AuthenticationTag) == 0, nil
+	return bytes.Equal(outputHmac, jwe.AuthenticationTag), nil
 }
 
 func (verifier *JweHmacVerifierImpl) ComputeHash(aad []byte, iv []byte, ciphertext []byte) []byte {
