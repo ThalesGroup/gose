@@ -159,7 +159,7 @@ func (signer *ECDSASigningKey) MarshalPem() (p string, err error) {
 	if err = pem.Encode(&output, &block); err != nil {
 		return
 	}
-	return string(output.Bytes()), nil
+	return output.String(), nil
 
 }
 

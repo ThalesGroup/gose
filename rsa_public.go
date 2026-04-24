@@ -93,7 +93,7 @@ func (k *RsaPublicKeyImpl) MarshalPem() (string, error) {
 	if err := pem.Encode(&output, &block); err != nil {
 		return "", err
 	}
-	return string(output.Bytes()), nil
+	return output.String(), nil
 }
 
 //Verify data matches signature
