@@ -90,7 +90,9 @@ func NewVerificationKey(jwk jose.Jwk) (VerificationKey, error) {
 		result.jwk = jwk
 
 		return &result, nil
-		// TODO: add symmetric verification.
+		// Symmetric (oct) key verification is not supported: the VerificationKey interface
+		// requires Certificates() and MarshalPem(), which have no meaningful implementation
+		// for symmetric keys. Add a dedicated symmetric-verification interface if needed.
 	default:
 		return nil, ErrUnsupportedKeyType
 	}
