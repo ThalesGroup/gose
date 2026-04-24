@@ -32,6 +32,7 @@ import (
 // JwtVerifierImpl implements the JWT Verification API
 type JwtVerifierImpl struct {
 	store TrustStore
+	now   func() time.Time
 }
 
 // Verify the jwt and audience is valid
@@ -41,7 +42,7 @@ func (verifier *JwtVerifierImpl) Verify(jwt string, audience []string) (kid stri
 	if signed, err = token.Unmarshal(jwt); err != nil {
 		return
 	}
-	now := time.Now().Unix()
+	now := verifier.now().Unix()
 	seen := []string{}
 	if token.Claims.NotBefore > now {
 		err = ErrInvalidJwtTimeframe
@@ -103,5 +104,5 @@ func (verifier *JwtVerifierImpl) Verify(jwt string, audience []string) (kid stri
 
 // NewJwtVerifier creates a JWT Verifier for a given truststore
 func NewJwtVerifier(ks TrustStore) *JwtVerifierImpl {
-	return &JwtVerifierImpl{store: ks}
+	return &JwtVerifierImpl{store: ks, now: time.Now}
 }
