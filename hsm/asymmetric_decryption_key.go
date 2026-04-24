@@ -4,6 +4,8 @@ import (
 	"crypto"
 	"crypto/rsa"
 	"crypto/x509"
+	"log/slog"
+
 	"github.com/ThalesGroup/crypto11"
 	"github.com/ThalesGroup/gose"
 	"github.com/ThalesGroup/gose/jose"
@@ -29,7 +31,8 @@ func (a *AsymmetricDecryptionKey) Certificates() []*x509.Certificate {
 	cert, err := a.ctx.FindCertificate(a.kid, a.keylabel, nil)
 	if err != nil {
 		// TODO: return an error via an interface signature change in next major version.
-		panic(err)
+		slog.Error("failed to find certificate for HSM key", "kid", string(a.kid), "err", err)
+		return nil
 	}
 	return []*x509.Certificate{cert}
 }
