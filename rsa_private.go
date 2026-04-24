@@ -28,8 +28,9 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+	"log/slog"
+
 	"github.com/ThalesGroup/gose/jose"
-	"github.com/sirupsen/logrus"
 )
 
 // RsaPrivateKeyImpl provides software based signing and decryption capabilities for use during JWT and JWE processing.
@@ -96,7 +97,7 @@ func (rsaKey *RsaPrivateKeyImpl) Sign(requested jose.KeyOps, data []byte) ([]byt
 	/* Calculate digest. */
 	digester := algToOptsMap[rsaKey.jwk.Alg()].HashFunc().New()
 	if _, err := digester.Write(data); err != nil {
-		logrus.Errorf("%s", err)
+		slog.Error("hash write error", "err", err)
 		return nil, err
 	}
 	digest := digester.Sum(nil)
