@@ -312,17 +312,27 @@ var inverseOps = map[jose.KeyOps]jose.KeyOps{
 	jose.KeyOpsVerify:  jose.KeyOpsSign,
 }
 
-// TODO this method always return PS algortihm for signature but never RSA alg for encryption.
-//
-//	need to find a way to return encryption alg
+// rsaBitsToAlg maps RSA key size to the recommended signing algorithm (PS family)
+// based on NIST 2016 recommendations.
 func rsaBitsToAlg(bitLen int) jose.Alg {
-	/* Based on NIST recommendations from 2016. */
 	if bitLen >= 15360 {
 		return jose.AlgPS512
 	} else if bitLen >= 7680 {
 		return jose.AlgPS384
 	}
 	return jose.AlgPS256
+}
+
+// rsaAlgFromOps selects the RSA algorithm based on intended key operations:
+// encryption/decryption uses AlgRSAOAEP; all other operations fall back to the
+// key-size-based signing algorithm from rsaBitsToAlg.
+func rsaAlgFromOps(bitLen int, ops []jose.KeyOps) jose.Alg {
+	for _, op := range ops {
+		if op == jose.KeyOpsEncrypt || op == jose.KeyOpsDecrypt {
+			return jose.AlgRSAOAEP
+		}
+	}
+	return rsaBitsToAlg(bitLen)
 }
 
 func ecBitsToAlg(bitLen int) jose.Alg {
@@ -410,7 +420,7 @@ func JwkFromPrivateKey(privateKey crypto.Signer, operations []jose.KeyOps, certs
 		if v.E > math.MaxInt32 {
 			return nil, ErrInvalidExponent
 		}
-		alg := rsaBitsToAlg(v.N.BitLen())
+		alg := rsaAlgFromOps(v.N.BitLen(), operations)
 		/* Key generation. */
 		v.Precompute()
 		var rsa jose.PrivateRsaKey
@@ -465,10 +475,7 @@ func JwkFromPublicKey(publicKey crypto.PublicKey, operations []jose.KeyOps, cert
 		if v.E > math.MaxInt32 {
 			return nil, ErrInvalidExponent
 		}
-		// TODO add the possibility to choose the algorithm with an input
-		//  here, only PS is returned, nothing about encryption
-
-		alg := rsaBitsToAlg(v.N.BitLen())
+		alg := rsaAlgFromOps(v.N.BitLen(), operations)
 		/* Key generation. */
 		var rsa jose.PublicRsaKey
 		rsa.SetAlg(alg)
