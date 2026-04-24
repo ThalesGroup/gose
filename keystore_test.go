@@ -22,6 +22,7 @@
 package gose
 
 import (
+	"context"
 	"testing"
 
 	"github.com/ThalesGroup/gose/jose"
@@ -156,7 +157,7 @@ func TestGet(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, store)
 
-	key, err := store.Get("issuer", "123456")
+	key, err := store.Get(context.Background(), "issuer", "123456")
 	assert.NotNil(t, key)
 	assert.Nil(t, err)
 
@@ -179,7 +180,7 @@ func TestGetFail(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, store)
 
-	key, err := store.Get("unknown", "98765")
+	key, err := store.Get(context.Background(), "unknown", "98765")
 	assert.Nil(t, key)
 	assert.Nil(t, key)
 

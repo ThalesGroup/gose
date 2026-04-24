@@ -22,6 +22,7 @@
 package gose
 
 import (
+	"context"
 	"crypto"
 	"crypto/x509"
 	"fmt"
@@ -156,7 +157,7 @@ type JwtVerifier interface {
 type TrustStore interface {
 	Add(issuer string, jwk jose.Jwk) error
 	Remove(issuer, kid string) bool
-	Get(issuer, kid string) (vk VerificationKey, err error)
+	Get(ctx context.Context, issuer, kid string) (vk VerificationKey, err error)
 }
 
 // AsymmetricDecryptionKeyStore provides the ability to access asymmetric decryption keys.

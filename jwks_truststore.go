@@ -22,6 +22,7 @@
 package gose
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -35,7 +36,7 @@ import (
 
 // Interface wrapper to allow mocking of http client.
 type httpClient interface {
-	Get(url string) (resp *http.Response, err error)
+	Do(req *http.Request) (resp *http.Response, err error)
 }
 
 // JwksTrustStore is an implementation of the TrustStore interface and can be used for accessing VerificationKeys.
@@ -59,7 +60,7 @@ func (store *JwksTrustStore) Remove(issuer, kid string) bool {
 }
 
 // Get returns a verification key for the given issuer and key id. If no key is found nil is returned.
-func (store *JwksTrustStore) Get(issuer, kid string) (vk VerificationKey, err error) {
+func (store *JwksTrustStore) Get(ctx context.Context, issuer, kid string) (vk VerificationKey, err error) {
 	store.lock.Lock()
 	defer store.lock.Unlock()
 
@@ -89,7 +90,12 @@ func (store *JwksTrustStore) Get(issuer, kid string) (vk VerificationKey, err er
 		}
 		// Not found. Refresh the keys
 		var response *http.Response
-		response, err = store.client.Get(store.url)
+		var req *http.Request
+		if req, err = http.NewRequestWithContext(ctx, http.MethodGet, store.url, nil); err != nil {
+			err = fmt.Errorf("error creating request for JWKS from %s: %v", store.url, err)
+			return
+		}
+		response, err = store.client.Do(req)
 		if err != nil {
 			err = fmt.Errorf("error encountered retrieving JWKS from %s: %v", store.url, err)
 			return
@@ -133,8 +139,7 @@ func NewJwksKeyStore(issuerList, url string) *JwksTrustStore {
 	return &JwksTrustStore{
 		url:          url,
 		inputIssuers: issuerList,
-		client:       &http.Client {
-			// TODO: modify Get method to accept a context to manage timeouts.
+		client: &http.Client{
 			Timeout: time.Second * 30,
 		},
 	}

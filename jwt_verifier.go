@@ -22,6 +22,7 @@
 package gose
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -77,7 +78,7 @@ func (verifier *JwtVerifierImpl) Verify(jwt string, audience []string) (kid stri
 	}
 	if len(token.Header.Kid) > 0 {
 		var key VerificationKey
-		key, err = verifier.store.Get(token.Claims.Issuer, token.Header.Kid)
+		key, err = verifier.store.Get(context.Background(), token.Claims.Issuer, token.Header.Kid)
 		if key == nil {
 			err = ErrUnknownKey
 			return

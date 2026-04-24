@@ -23,6 +23,7 @@ package gose
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"os"
 	"sync"
@@ -66,7 +67,7 @@ func (store *TrustKeyStoreImpl) Remove(issuer, kid string) bool {
 }
 
 //Get get verification jwk for issuer and jwk id
-func (store *TrustKeyStoreImpl) Get(issuer, kid string) (vk VerificationKey, err error) {
+func (store *TrustKeyStoreImpl) Get(_ context.Context, issuer, kid string) (vk VerificationKey, err error) {
 	store.mtx.Lock()
 	defer store.mtx.Unlock()
 	if keySet, ok := store.keys[issuer]; ok {

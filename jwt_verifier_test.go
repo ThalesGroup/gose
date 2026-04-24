@@ -22,10 +22,10 @@
 package gose
 
 import (
+	"context"
+	"crypto/x509"
 	"testing"
 	"time"
-
-	"crypto/x509"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -79,7 +79,7 @@ func (store *MockedTrustKeyStore) Remove(issuer, kid string) bool {
 	return args.Bool(0)
 }
 
-func (store *MockedTrustKeyStore) Get(issuer, kid string) (VerificationKey, error) {
+func (store *MockedTrustKeyStore) Get(_ context.Context, issuer, kid string) (VerificationKey, error) {
 	args := store.Called(issuer, kid)
 	return args.Get(0).(VerificationKey), args.Error(1)
 }
