@@ -24,6 +24,8 @@ package gose
 import (
 	"context"
 	"crypto/x509"
+	"encoding/base64"
+	"fmt"
 	"testing"
 	"time"
 
@@ -63,6 +65,12 @@ const (
 
 func unixStartTime() time.Time {
 	return time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC)
+}
+
+func atUnix(ts int64) func() time.Time {
+	return func() time.Time {
+		return unixStartTime().Add(time.Duration(ts) * time.Second)
+	}
 }
 
 type MockedTrustKeyStore struct {
@@ -132,142 +140,127 @@ func TestNewJwtVerifier(t *testing.T) {
 	assert.Equal(t, &ks, verifier.store)
 }
 
-//
-//func TestJwtVerifierImpl_Verify(t *testing.T) {
-//	// Setup
-//	defer monkey.Patch(time.Now, func() time.Time {
-//		return unixStartTime().Add(time.Duration(validJwtNbf) * time.Second)
-//	}).Unpatch()
-//	key := MockedVerificationKey{}
-//	signatureBytes, err := base64.RawURLEncoding.DecodeString(rsaValidJwtSignature)
-//	require.NoError(t, err)
-//	key.On("Verify", jose.KeyOpsVerify, []byte(rsaValidJwtPayload), signatureBytes).Return(true)
-//	key.On("Algorithm").Return(rsaValidJwtAlg)
-//	key.On("Kid").Return(validJwtKid)
-//	ks := MockedTrustKeyStore{}
-//	ks.On("Get", mock.Anything, validJwtKid).Return(&key, nil)
-//	verifier := NewJwtVerifier(&ks)
-//
-//	// Act
-//	kid, claimSet, err := verifier.Verify(rsaValidJwt, []string{"test"})
-//
-//	// Assert
-//	require.NoError(t, err)
-//	require.NotNil(t, claimSet)
-//	assert.Equal(t, validJwtKid, kid)
-//	assert.Equal(t, validJwtAud, claimSet.Audiences.Aud[0])
-//	assert.Equal(t, validJwtSub, claimSet.Subject)
-//	assert.NotEmpty(t, validJwtJti, claimSet.JwtID)
-//	assert.Equal(t, validJwtIat, claimSet.IssuedAt)
-//	assert.Equal(t, validJwtExp, claimSet.Expiration)
-//	assert.Equal(t, validJwtNbf, claimSet.NotBefore)
-//}
-//
-//func TestJwtVerifierImpl_Verify_FailsWithInvalidSignature(t *testing.T) {
-//	// Setup
-//	defer monkey.Patch(time.Now, func() time.Time {
-//		return unixStartTime().Add(time.Duration(validJwtNbf) * time.Second)
-//	}).Unpatch()
-//	key := MockedVerificationKey{}
-//	signatureBytes, err := base64.RawURLEncoding.DecodeString(rsaValidJwtSignature)
-//	require.NoError(t, err)
-//	key.On("Verify", jose.KeyOpsVerify, []byte(rsaValidJwtPayload), signatureBytes).Return(false)
-//	key.On("Algorithm").Return(rsaValidJwtAlg)
-//	ks := MockedTrustKeyStore{}
-//	ks.On("Verifier", validJwtKid).Return(&key)
-//	ks.On("Get", mock.Anything, validJwtKid).Return(&key, nil)
-//	verifier := NewJwtVerifier(&ks)
-//
-//	// Act
-//	_, claimSet, err := verifier.Verify(rsaValidJwt, []string{"test"})
-//
-//	// Assert
-//	require.Equal(t, ErrInvalidSignature, err)
-//	require.Nil(t, claimSet)
-//}
-//
-//func TestJwtVerifierImpl_Verify_FailsWithNbfViolation(t *testing.T) {
-//	// Setup
-//	defer monkey.Patch(time.Now, func() time.Time {
-//		return unixStartTime().Add(time.Duration(validJwtNbf-10) * time.Second)
-//	}).Unpatch()
-//	key := MockedVerificationKey{}
-//	signatureBytes, err := base64.RawURLEncoding.DecodeString(rsaValidJwtSignature)
-//	require.NoError(t, err)
-//	key.On("Verify", jose.KeyOpsVerify, []byte(rsaValidJwtPayload), signatureBytes).Return(true)
-//	key.On("Algorithm").Return(rsaValidJwtAlg)
-//	ks := MockedTrustKeyStore{}
-//	ks.On("Verifier", validJwtKid).Return(&key)
-//	ks.On("Get", mock.Anything, validJwtKid).Return(&key, nil)
-//	verifier := NewJwtVerifier(&ks)
-//
-//	// Act
-//	kid, claimSet, err := verifier.Verify(rsaValidJwt, []string{"test"})
-//
-//	// Assert
-//	require.Equal(t, ErrInvalidJwtTimeframe, err)
-//	require.Empty(t, kid)
-//	require.Nil(t, claimSet)
-//}
-//
-//func TestJwtVerifierImpl_Verify_FailsWithExpViolation(t *testing.T) {
-//	// Setup
-//	defer monkey.Patch(time.Now, func() time.Time {
-//		return unixStartTime().Add(time.Duration(validJwtExp+10) * time.Second)
-//	}).Unpatch()
-//	key := MockedVerificationKey{}
-//	signatureBytes, err := base64.RawURLEncoding.DecodeString(rsaValidJwtSignature)
-//	require.NoError(t, err)
-//	key.On("Verify", jose.KeyOpsVerify, []byte(rsaValidJwtPayload), signatureBytes).Return(true)
-//	key.On("Algorithm").Return(rsaValidJwtAlg)
-//	ks := MockedTrustKeyStore{}
-//	ks.On("Verifier", validJwtKid).Return(&key)
-//	ks.On("Get", mock.Anything, validJwtKid).Return(&key, nil)
-//	verifier := NewJwtVerifier(&ks)
-//
-//	// Act
-//	kid, claimSet, err := verifier.Verify(rsaValidJwt, []string{"test"})
-//
-//	// Assert
-//	require.Equal(t, ErrInvalidJwtTimeframe, err)
-//	require.Empty(t, kid)
-//	require.Nil(t, claimSet)
-////}
-//
-//func TestJwtVerifierImpl_Verify_FailsWithNoKnownAudience(t *testing.T) {
-//	testcases := []struct {
-//		audiences []string
-//		seen      []string
-//	}{
-//		{
-//			audiences: []string{"unknown"},
-//			seen:      []string{"test"},
-//		},
-//		{
-//			audiences: []string{},
-//			seen:      []string{},
-//		},
-//	}
-//	// Setup
-//	defer monkey.Patch(time.Now, func() time.Time {
-//		return unixStartTime().Add(time.Duration(validJwtNbf) * time.Second)
-//	}).Unpatch()
-//	key := MockedVerificationKey{}
-//	signatureBytes, err := base64.RawURLEncoding.DecodeString(rsaValidJwtSignature)
-//	require.NoError(t, err)
-//	key.On("Verify", jose.KeyOpsVerify, []byte(rsaValidJwtPayload), signatureBytes).Return(false)
-//	key.On("Algorithm").Return(rsaValidJwtAlg)
-//	ks := MockedTrustKeyStore{}
-//	ks.On("Verifier", validJwtKid).Return(&key)
-//	ks.On("Get", mock.Anything, validJwtKid).Return(&key, nil)
-//	verifier := NewJwtVerifier(&ks)
-//
-//	for _, test := range testcases {
-//		// Act
-//		_, _, err := verifier.Verify(rsaValidJwt, test.audiences)
-//
-//		// Assert
-//		ee := &InvalidFormat{fmt.Sprintf("no expected audience | expected %s | seen %s", test.audiences, test.seen)}
-//		assert.Equal(t, ee, err)
-//	}
-//}
+func TestJwtVerifierImpl_Verify(t *testing.T) {
+	// Setup
+	key := MockedVerificationKey{}
+	signatureBytes, err := base64.RawURLEncoding.DecodeString(rsaValidJwtSignature)
+	require.NoError(t, err)
+	key.On("Verify", jose.KeyOpsVerify, []byte(rsaValidJwtPayload), signatureBytes).Return(true)
+	key.On("Algorithm").Return(rsaValidJwtAlg)
+	key.On("Kid").Return(validJwtKid)
+	ks := MockedTrustKeyStore{}
+	ks.On("Get", mock.Anything, validJwtKid).Return(&key, nil)
+	verifier := NewJwtVerifier(&ks)
+	verifier.now = atUnix(validJwtNbf)
+
+	// Act
+	kid, claimSet, err := verifier.Verify(rsaValidJwt, []string{"test"})
+
+	// Assert
+	require.NoError(t, err)
+	require.NotNil(t, claimSet)
+	assert.Equal(t, validJwtKid, kid)
+	assert.Equal(t, validJwtAud, claimSet.Audiences.Aud[0])
+	assert.Equal(t, validJwtSub, claimSet.Subject)
+	assert.NotEmpty(t, validJwtJti, claimSet.JwtID)
+	assert.Equal(t, validJwtIat, claimSet.IssuedAt)
+	assert.Equal(t, validJwtExp, claimSet.Expiration)
+	assert.Equal(t, validJwtNbf, claimSet.NotBefore)
+}
+
+func TestJwtVerifierImpl_Verify_FailsWithInvalidSignature(t *testing.T) {
+	// Setup
+	key := MockedVerificationKey{}
+	signatureBytes, err := base64.RawURLEncoding.DecodeString(rsaValidJwtSignature)
+	require.NoError(t, err)
+	key.On("Verify", jose.KeyOpsVerify, []byte(rsaValidJwtPayload), signatureBytes).Return(false)
+	key.On("Algorithm").Return(rsaValidJwtAlg)
+	ks := MockedTrustKeyStore{}
+	ks.On("Get", mock.Anything, validJwtKid).Return(&key, nil)
+	verifier := NewJwtVerifier(&ks)
+	verifier.now = atUnix(validJwtNbf)
+
+	// Act
+	_, claimSet, err := verifier.Verify(rsaValidJwt, []string{"test"})
+
+	// Assert
+	require.Equal(t, ErrInvalidSignature, err)
+	require.Nil(t, claimSet)
+}
+
+func TestJwtVerifierImpl_Verify_FailsWithNbfViolation(t *testing.T) {
+	// Setup
+	key := MockedVerificationKey{}
+	signatureBytes, err := base64.RawURLEncoding.DecodeString(rsaValidJwtSignature)
+	require.NoError(t, err)
+	key.On("Verify", jose.KeyOpsVerify, []byte(rsaValidJwtPayload), signatureBytes).Return(true)
+	key.On("Algorithm").Return(rsaValidJwtAlg)
+	ks := MockedTrustKeyStore{}
+	ks.On("Get", mock.Anything, validJwtKid).Return(&key, nil)
+	verifier := NewJwtVerifier(&ks)
+	verifier.now = atUnix(validJwtNbf - 10)
+
+	// Act
+	kid, claimSet, err := verifier.Verify(rsaValidJwt, []string{"test"})
+
+	// Assert
+	require.Equal(t, ErrInvalidJwtTimeframe, err)
+	require.Empty(t, kid)
+	require.Nil(t, claimSet)
+}
+
+func TestJwtVerifierImpl_Verify_FailsWithExpViolation(t *testing.T) {
+	// Setup
+	key := MockedVerificationKey{}
+	signatureBytes, err := base64.RawURLEncoding.DecodeString(rsaValidJwtSignature)
+	require.NoError(t, err)
+	key.On("Verify", jose.KeyOpsVerify, []byte(rsaValidJwtPayload), signatureBytes).Return(true)
+	key.On("Algorithm").Return(rsaValidJwtAlg)
+	ks := MockedTrustKeyStore{}
+	ks.On("Get", mock.Anything, validJwtKid).Return(&key, nil)
+	verifier := NewJwtVerifier(&ks)
+	verifier.now = atUnix(validJwtExp + 10)
+
+	// Act
+	kid, claimSet, err := verifier.Verify(rsaValidJwt, []string{"test"})
+
+	// Assert
+	require.Equal(t, ErrInvalidJwtTimeframe, err)
+	require.Empty(t, kid)
+	require.Nil(t, claimSet)
+}
+
+func TestJwtVerifierImpl_Verify_FailsWithNoKnownAudience(t *testing.T) {
+	testcases := []struct {
+		audiences []string
+		seen      []string
+	}{
+		{
+			audiences: []string{"unknown"},
+			seen:      []string{"test"},
+		},
+		{
+			audiences: []string{},
+			seen:      []string{},
+		},
+	}
+	// Setup
+	key := MockedVerificationKey{}
+	signatureBytes, err := base64.RawURLEncoding.DecodeString(rsaValidJwtSignature)
+	require.NoError(t, err)
+	key.On("Verify", jose.KeyOpsVerify, []byte(rsaValidJwtPayload), signatureBytes).Return(false)
+	key.On("Algorithm").Return(rsaValidJwtAlg)
+	ks := MockedTrustKeyStore{}
+	ks.On("Get", mock.Anything, validJwtKid).Return(&key, nil)
+	verifier := NewJwtVerifier(&ks)
+	verifier.now = atUnix(validJwtNbf)
+
+	for _, test := range testcases {
+		// Act
+		_, _, err := verifier.Verify(rsaValidJwt, test.audiences)
+
+		// Assert
+		ee := &InvalidFormat{fmt.Sprintf("no expected audience | expected %s | seen %s", test.audiences, test.seen)}
+		assert.Equal(t, ee, err)
+	}
+}
