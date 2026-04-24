@@ -98,6 +98,14 @@ const (
 	AlgDir Alg = "dir"
 	// AlgRSAOAEP RSA OAEP Key encryption for use with JWEs
 	AlgRSAOAEP Alg = "RSA-OAEP"
+	// ML-KEM direct key agreement: KDF output is the CEK (draft-reddy-cose-jose-pqc-kem)
+	AlgMLKEM512KMAC128  Alg = "MLKEM512-KMAC128"
+	AlgMLKEM768KMAC256  Alg = "MLKEM768-KMAC256"
+	AlgMLKEM1024KMAC256 Alg = "MLKEM1024-KMAC256"
+	// ML-KEM with AES key wrapping: KDF output wraps a random CEK via AES-KW
+	AlgMLKEM512KMAC128AES128KW  Alg = "MLKEM512-KMAC128-AES128KW"
+	AlgMLKEM768KMAC256AES256KW  Alg = "MLKEM768-KMAC256-AES256KW"
+	AlgMLKEM1024KMAC256AES256KW Alg = "MLKEM1024-KMAC256-AES256KW"
 	// AlgRSAOAEPSHA1 and AlgRSAOAEPSHA2 are here to differentiate RSA OAEP using SHA1 or SHA2 for
 	// encryption / decryption in the code, like in switch case statements for example.
 	// They have the same value as AlgRSAOAEP nonetheless.
@@ -112,6 +120,12 @@ const (
 	CrvP384 Crv = "P-384"
 	//CrvP521 NIST P-521
 	CrvP521 Crv = "P-521"
+	// CrvMLKEM512 ML-KEM-512 parameter set (FIPS 203)
+	CrvMLKEM512 Crv = "ML-KEM-512"
+	// CrvMLKEM768 ML-KEM-768 parameter set (FIPS 203)
+	CrvMLKEM768 Crv = "ML-KEM-768"
+	// CrvMLKEM1024 ML-KEM-1024 parameter set (FIPS 203)
+	CrvMLKEM1024 Crv = "ML-KEM-1024"
 
 	// Key Types
 
@@ -121,6 +135,8 @@ const (
 	KtyEC Kty = "EC"
 	//KtyOct Octet key type
 	KtyOct Kty = "oct"
+	// KtyLWE Lattice-based key type for ML-KEM (provisional; draft-reddy-cose-jose-pqc-kem)
+	KtyLWE Kty = "LWE"
 
 	//KeyUseEnc encryption usage
 	KeyUseEnc KeyUse = "enc"
