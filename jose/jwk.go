@@ -480,6 +480,101 @@ func (k *OctSecretKey) UnmarshalJSON(src []byte) (err error) {
 	return
 }
 
+// EncapsPubMlKemKeyFields holds the public (encapsulation) key material for ML-KEM.
+type EncapsPubMlKemKeyFields struct {
+	Crv Crv  `json:"crv"` // "ML-KEM-512", "ML-KEM-768", or "ML-KEM-1024"
+	X   Blob `json:"x"`   // base64url-encoded encapsulation key bytes
+}
+
+// EncapsPubMlKemKey is the JWK representation of an ML-KEM public (encapsulation) key.
+type EncapsPubMlKemKey struct {
+	jwkFields
+	EncapsPubMlKemKeyFields
+}
+
+// Kty returns the LWE key type.
+func (k *EncapsPubMlKemKey) Kty() Kty { return KtyLWE }
+
+// MarshalJSON encodes an EncapsPubMlKemKey to JSON.
+func (k *EncapsPubMlKemKey) MarshalJSON() (dst []byte, err error) {
+	toMarshal := struct {
+		Kty Kty `json:"kty"`
+		*jwkFields
+		*EncapsPubMlKemKeyFields
+	}{
+		Kty:                     KtyLWE,
+		jwkFields:               &k.jwkFields,
+		EncapsPubMlKemKeyFields: &k.EncapsPubMlKemKeyFields,
+	}
+	return json.Marshal(&toMarshal)
+}
+
+// UnmarshalJSON decodes an EncapsPubMlKemKey from JSON.
+func (k *EncapsPubMlKemKey) UnmarshalJSON(src []byte) (err error) {
+	toUnmarshal := struct {
+		Kty Kty `json:"kty"`
+		*jwkFields
+		*EncapsPubMlKemKeyFields
+	}{
+		jwkFields:               &k.jwkFields,
+		EncapsPubMlKemKeyFields: &k.EncapsPubMlKemKeyFields,
+	}
+	if err = json.Unmarshal(src, &toUnmarshal); err != nil {
+		return
+	}
+	if toUnmarshal.Kty != KtyLWE {
+		return ErrUnexpectedKeyType
+	}
+	return k.CheckConsistency()
+}
+
+// DecapsPrivMlKemKey is the JWK representation of an ML-KEM private (decapsulation) key.
+// It embeds the public key fields and adds the decapsulation key seed in D.
+type DecapsPrivMlKemKey struct {
+	EncapsPubMlKemKey
+	D Blob `json:"d"` // base64url-encoded decapsulation key seed
+}
+
+// Kty returns the LWE key type.
+func (k *DecapsPrivMlKemKey) Kty() Kty { return KtyLWE }
+
+// MarshalJSON encodes a DecapsPrivMlKemKey to JSON.
+func (k *DecapsPrivMlKemKey) MarshalJSON() (dst []byte, err error) {
+	toMarshal := struct {
+		Kty Kty `json:"kty"`
+		*jwkFields
+		*EncapsPubMlKemKeyFields
+		D Blob `json:"d"`
+	}{
+		Kty:                     KtyLWE,
+		jwkFields:               &k.jwkFields,
+		EncapsPubMlKemKeyFields: &k.EncapsPubMlKemKeyFields,
+		D:                       k.D,
+	}
+	return json.Marshal(&toMarshal)
+}
+
+// UnmarshalJSON decodes a DecapsPrivMlKemKey from JSON.
+func (k *DecapsPrivMlKemKey) UnmarshalJSON(src []byte) (err error) {
+	toUnmarshal := struct {
+		Kty Kty `json:"kty"`
+		*jwkFields
+		*EncapsPubMlKemKeyFields
+		D Blob `json:"d"`
+	}{
+		jwkFields:               &k.jwkFields,
+		EncapsPubMlKemKeyFields: &k.EncapsPubMlKemKeyFields,
+	}
+	if err = json.Unmarshal(src, &toUnmarshal); err != nil {
+		return
+	}
+	if toUnmarshal.Kty != KtyLWE {
+		return ErrUnexpectedKeyType
+	}
+	k.D = toUnmarshal.D
+	return k.CheckConsistency()
+}
+
 //UnmarshalJwk serialization into a concrete type.
 func UnmarshalJwk(reader io.ReadSeeker) (jwk Jwk, err error) {
 	// First unmarshal Kty so that we can work out how to proceed.
@@ -523,6 +618,17 @@ func UnmarshalJwk(reader io.ReadSeeker) (jwk Jwk, err error) {
 			return
 		}
 		jwk = &oct
+	case KtyLWE:
+		var priv DecapsPrivMlKemKey
+		if err = decoder.Decode(&priv); err != nil {
+			return
+		}
+		// If D is empty this is a public-only (encapsulation) key.
+		if len(priv.D.B) == 0 {
+			jwk = &priv.EncapsPubMlKemKey
+		} else {
+			jwk = &priv
+		}
 	default:
 		err = ErrUnsupportedKeyType
 		return
