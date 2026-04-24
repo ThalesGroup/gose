@@ -421,7 +421,7 @@ func TestJwkFields_X5C(t *testing.T) {
 		},
 		{
 			certs: []*x509.Certificate{
-				&x509.Certificate{
+				{
 					Subject: pkix.Name{
 						SerialNumber: "1",
 					},
@@ -430,12 +430,12 @@ func TestJwkFields_X5C(t *testing.T) {
 		},
 		{
 			certs: []*x509.Certificate{
-				&x509.Certificate{
+				{
 					Subject: pkix.Name{
 						SerialNumber: "2",
 					},
 				},
-				&x509.Certificate{
+				{
 					Subject: pkix.Name{
 						SerialNumber: "3",
 					},
