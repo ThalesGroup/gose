@@ -35,7 +35,8 @@ type JweCustomHeaderFields struct {
 }
 
 // JweHeader JWE header fields.
-// DEPRECATED
+//
+// Deprecated: Use JweProtectedHeader instead.
 type JweHeader struct {
 	JwsHeader
 	JweCustomHeaderFields
@@ -102,8 +103,8 @@ type JweRfc7516 struct {
 }
 
 // Jwe representation of a JWE.
-// Beware : this Jwe implementation does not respect rfc 7516. Use JweRfc7516 instead.
-// DEPRECATED
+//
+// Deprecated: Does not conform to RFC 7516. Use JweRfc7516Compact instead.
 type Jwe struct {
 	Header           JweHeader
 	MarshalledHeader []byte
@@ -170,8 +171,9 @@ func (jweHeader *HeaderRfc7516) MarshallHeader() (marshalledHeader []byte, err e
 	return concatByteArrays(encodedHeaders), nil
 }
 
-// Unmarshal to body string, or error
-// DEPRECATED : does not match the proper JWE structure as defined in rfc 7516
+// Unmarshal to body string, or error.
+//
+// Deprecated: Does not conform to RFC 7516. Use JweRfc7516Compact.Unmarshal instead.
 func (jwe *Jwe) Unmarshal(src string) (err error) {
 	/* Compact JWS encoding. */
 	parts := strings.SplitN(src, ".", 5)
