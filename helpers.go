@@ -40,9 +40,8 @@ import (
 
 	"crypto/ecdsa"
 	"encoding/json"
-	"log"
-
 	"github.com/ThalesGroup/gose/jose"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -240,7 +239,8 @@ func CalculateKeyID(jwk jose.Jwk) (string, error) {
 		}, ".")
 		digester := sha256.New()
 		if _, err := digester.Write([]byte(encoded)); err != nil {
-			log.Panicf("%s", err)
+			logrus.Errorf("%s", err)
+			return "", err
 		}
 		digest := digester.Sum(nil)
 		return fmt.Sprintf("%x", digest), nil
@@ -254,7 +254,8 @@ func CalculateKeyID(jwk jose.Jwk) (string, error) {
 		}, ".")
 		digester := sha256.New()
 		if _, err := digester.Write([]byte(encoded)); err != nil {
-			log.Panicf("%s", err)
+			logrus.Errorf("%s", err)
+			return "", err
 		}
 		digest := digester.Sum(nil)
 		return fmt.Sprintf("%x", digest), nil
@@ -270,7 +271,10 @@ func CalculateKeyID(jwk jose.Jwk) (string, error) {
 			string(jwk.Kty()),
 			base64.RawURLEncoding.EncodeToString(typed.K.Bytes()),
 		}, ".")
-		digester.Write([]byte(encoded))
+		if _, err := digester.Write([]byte(encoded)); err != nil {
+			logrus.Errorf("%s", err)
+			return "", err
+		}
 		digest := digester.Sum(nil)
 		return fmt.Sprintf("%x", digest), nil
 	default:
@@ -376,7 +380,7 @@ func JwkToString(jwk jose.Jwk) (string, error) {
 func base64EncodeUInt32(val uint32) string {
 	var buf bytes.Buffer
 	if err := binary.Write(&buf, binary.BigEndian, &val); err != nil {
-		log.Panicf("%s", err)
+		logrus.Errorf("%s", err)
 	}
 	return base64.RawURLEncoding.EncodeToString(buf.Bytes())
 }
@@ -384,7 +388,7 @@ func base64EncodeUInt32(val uint32) string {
 func uintToBytesBigEndian(val uint64) []byte {
 	var buf bytes.Buffer
 	if err := binary.Write(&buf, binary.BigEndian, &val); err != nil {
-		log.Panicf("%s", err)
+		logrus.Errorf("%s", err)
 	}
 	return buf.Bytes()
 }
@@ -438,12 +442,14 @@ func JwkFromPrivateKey(privateKey crypto.Signer, operations []jose.KeyOps, certs
 	publicKey, err := PublicFromPrivate(jwk)
 	if err != nil {
 		// We should have erred before we ever get here.
-		log.Panic("Failed to derive public jwk from private")
+		logrus.Errorf("Failed to derive public jwk from private: %s", err)
+		return nil, err
 	}
 	kid, err := CalculateKeyID(publicKey)
 	if err != nil {
 		// We should have erred before we ever get here.
-		log.Panic("Failed to calculate Key ID")
+		logrus.Errorf("Failed to calculate Key ID: %s", err)
+		return nil, err
 	}
 	jwk.SetKid(kid)
 
@@ -480,7 +486,11 @@ func JwkFromPublicKey(publicKey crypto.PublicKey, operations []jose.KeyOps, cert
 		return nil, ErrUnsupportedKeyType
 	}
 	jwk.SetOps(operations)
-	kid, _ := CalculateKeyID(jwk)
+	kid, err := CalculateKeyID(jwk)
+	if err != nil {
+		logrus.Errorf("Failed to calculate Key ID: %s", err)
+		return nil, err
+	}
 	jwk.SetKid(kid)
 	if len(certs) > 0 {
 		jwk.SetX5C(certs)

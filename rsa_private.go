@@ -96,7 +96,8 @@ func (rsaKey *RsaPrivateKeyImpl) Sign(requested jose.KeyOps, data []byte) ([]byt
 	/* Calculate digest. */
 	digester := algToOptsMap[rsaKey.jwk.Alg()].HashFunc().New()
 	if _, err := digester.Write(data); err != nil {
-		logrus.Panicf("%s", err)
+		logrus.Errorf("%s", err)
+		return nil, err
 	}
 	digest := digester.Sum(nil)
 	opts := algToOptsMap[rsaKey.jwk.Alg()]

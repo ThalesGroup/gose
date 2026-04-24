@@ -30,6 +30,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"github.com/ThalesGroup/gose/jose"
+	"github.com/sirupsen/logrus"
 	"math/big"
 )
 
@@ -83,8 +84,9 @@ func (signer *ECDSASigningKey) Sign(requested jose.KeyOps, data []byte) (signatu
 	}
 
 	hasher := opts.HashFunc().New()
-	if _, err := hasher.Write([]byte(data)); err != nil {
-		panic(err)
+	if _, werr := hasher.Write(data); werr != nil {
+		logrus.Errorf("%s", werr)
+		return nil, werr
 	}
 
 	// Sign the string and return r, s

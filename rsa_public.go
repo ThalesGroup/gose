@@ -103,7 +103,8 @@ func (k *RsaPublicKeyImpl) Verify(operation jose.KeyOps, data []byte, signature 
 	}
 	digester := algToOptsMap[k.jwk.Alg()].HashFunc().New()
 	if _, err := digester.Write(data); err != nil {
-		logrus.Panicf("%s", err)
+		logrus.Errorf("%s", err)
+		return false
 	}
 	digest := digester.Sum(nil)
 	var err error
