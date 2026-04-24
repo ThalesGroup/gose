@@ -22,10 +22,9 @@
 package gose
 
 import (
-	"io/ioutil"
-
 	"bytes"
 	"encoding/json"
+	"os"
 	"sync"
 
 	"github.com/ThalesGroup/gose/jose"
@@ -99,7 +98,7 @@ func NewTrustKeyStoreFromFile(root string) (store *TrustKeyStoreImpl, err error)
 	tmp := TrustKeyStoreImpl{}
 	tmp.keys = make(map[string]map[string]jose.Jwk)
 	var entries map[string]json.RawMessage
-	rootData, err := ioutil.ReadFile(root)
+	rootData, err := os.ReadFile(root)
 	if err != nil {
 		return nil, err
 	}

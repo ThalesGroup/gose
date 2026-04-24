@@ -23,8 +23,9 @@ package gose
 
 import (
 	"bytes"
+	"context"
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"testing"
 
@@ -85,7 +86,7 @@ func TestJwksTrustStore_GetWithSingleIssuer(t *testing.T) {
 	mockedClient.On("Get", "https://www.googleapis.com/oauth2/v3/certs").Return(
 		&http.Response{
 			StatusCode: http.StatusOK,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(jwks))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(jwks))),
 		}, nil).Once()
 	store := NewJwksKeyStore("https://accounts.google.com", "https://www.googleapis.com/oauth2/v3/certs")
 	store.client = mockedClient
@@ -102,7 +103,7 @@ func TestJwksTrustStore_GetWithMultipleIssuer(t *testing.T) {
 	mockedClient.On("Get", "https://www.googleapis.com/oauth2/v3/certs").Return(
 		&http.Response{
 			StatusCode: http.StatusOK,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(jwks))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(jwks))),
 		}, nil).Once()
 	store := NewJwksKeyStore("https://accounts.google.com,https://accounts.thalesgroup.com", "https://www.googleapis.com/oauth2/v3/certs")
 	store.client = mockedClient
@@ -133,7 +134,7 @@ func TestJwksTrustStore_GetHttpError(t *testing.T) {
 	mockedClient.On("Get", "https://www.googleapis.com/oauth2/v3/certs").Return(
 		&http.Response{
 			StatusCode: http.StatusForbidden,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(jwks))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(jwks))),
 		}, nil).Times(2)
 	store := NewJwksKeyStore("https://accounts.google.com", "https://www.googleapis.com/oauth2/v3/certs")
 	store.client = mockedClient
@@ -150,7 +151,7 @@ func TestJwksTrustStore_GetInvalidJwksEncoding(t *testing.T) {
 	mockedClient.On("Get", "https://www.googleapis.com/oauth2/v3/certs").Return(
 		&http.Response{
 			StatusCode: http.StatusOK,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte("invalid"))),
+			Body:       io.NopCloser(bytes.NewReader([]byte("invalid"))),
 		}, nil).Times(2)
 	store := NewJwksKeyStore("https://accounts.google.com", "https://www.googleapis.com/oauth2/v3/certs")
 	store.client = mockedClient
