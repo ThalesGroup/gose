@@ -8,9 +8,13 @@ require (
 	github.com/stretchr/testify v1.11.1
 )
 
+replace github.com/ThalesGroup/crypto11 v1.7.0-rc1 => ../crypto11.github.com.ThalesGroup
+
+replace github.com/miekg/pkcs11 v1.1.2 => ../pkcs11.github.com.ThalesGroup
+
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/miekg/pkcs11 v1.1.2 // indirect
+	github.com/miekg/pkcs11 v1.1.2
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/stretchr/objx v0.5.3 // indirect
