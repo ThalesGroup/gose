@@ -98,14 +98,6 @@ const (
 	AlgDir Alg = "dir"
 	// AlgRSAOAEP RSA OAEP Key encryption for use with JWEs
 	AlgRSAOAEP Alg = "RSA-OAEP"
-	// ML-KEM direct key agreement: KDF output is the CEK (draft-reddy-cose-jose-pqc-kem)
-	AlgMLKEM512KMAC128  Alg = "MLKEM512-KMAC128"
-	AlgMLKEM768KMAC256  Alg = "MLKEM768-KMAC256"
-	AlgMLKEM1024KMAC256 Alg = "MLKEM1024-KMAC256"
-	// ML-KEM with AES key wrapping: KDF output wraps a random CEK via AES-KW
-	AlgMLKEM512KMAC128AES128KW  Alg = "MLKEM512-KMAC128-AES128KW"
-	AlgMLKEM768KMAC256AES256KW  Alg = "MLKEM768-KMAC256-AES256KW"
-	AlgMLKEM1024KMAC256AES256KW Alg = "MLKEM1024-KMAC256-AES256KW"
 	// AlgRSAOAEPSHA1 and AlgRSAOAEPSHA2 are here to differentiate RSA OAEP using SHA1 or SHA2 for
 	// encryption / decryption in the code, like in switch case statements for example.
 	// They have the same value as AlgRSAOAEP nonetheless.
@@ -113,6 +105,24 @@ const (
 	// we need to support both of these modes in gose implementation.
 	AlgRSAOAEPSHA1 Alg = "RSA-OAEP"
 	AlgRSAOAEPSHA2 Alg = "RSA-OAEP"
+	// ML-KEM direct key agreement: KDF output is the CEK (draft-reddy-cose-jose-pqc-kem)
+	AlgMLKEM512  Alg = "MLKEM512-KMAC128"
+	AlgMLKEM768  Alg = "MLKEM768-KMAC256"
+	AlgMLKEM1024 Alg = "MLKEM1024-KMAC256"
+	// ML-KEM with AES key wrapping: KDF output wraps a random CEK via AES-KW
+	AlgMLKEM512AES128KW  Alg = "MLKEM512-KMAC128-AES128KW"
+	AlgMLKEM768AES256KW  Alg = "MLKEM768-KMAC256-AES256KW"
+	AlgMLKEM1024AES256KW Alg = "MLKEM1024-KMAC256-AES256KW"
+	// AlgMLKEM512KMAC128, AlgMLKEM768KMAC256, AlgMLKEM1024KMAC256 are here to name the specific
+	// KDF variant in code (e.g. switch case statements). They have the same value as the short-form
+	// aliases above.
+	AlgMLKEM512KMAC128  Alg = "MLKEM512-KMAC128"
+	AlgMLKEM768KMAC256  Alg = "MLKEM768-KMAC256"
+	AlgMLKEM1024KMAC256 Alg = "MLKEM1024-KMAC256"
+	// AlgMLKEM512KMAC128AES128KW, etc. have the same value as the short-form AES-KW aliases above.
+	AlgMLKEM512KMAC128AES128KW  Alg = "MLKEM512-KMAC128-AES128KW"
+	AlgMLKEM768KMAC256AES256KW  Alg = "MLKEM768-KMAC256-AES256KW"
+	AlgMLKEM1024KMAC256AES256KW Alg = "MLKEM1024-KMAC256-AES256KW"
 
 	//CrvP256 NIST P-256
 	CrvP256 Crv = "P-256"
@@ -237,40 +247,40 @@ func marshalJSONBlob(src []byte, encoder *base64.Encoding) (dst []byte, err erro
 	return
 }
 
-//BigNum for managing big.Int
+// BigNum for managing big.Int
 type BigNum struct {
 	b big.Int
 }
 
-//SetBytes of BigNum
+// SetBytes of BigNum
 func (b *BigNum) SetBytes(val []byte) *BigNum {
 	b.b.SetBytes(val)
 	return b
 }
 
-//Set bigNum with bit.Int
+// Set bigNum with bit.Int
 func (b *BigNum) Set(val *big.Int) *BigNum {
 	b.b.SetBytes(val.Bytes())
 	return b
 }
 
-//Int as big.Int
+// Int as big.Int
 func (b *BigNum) Int() *big.Int {
 	return &b.b
 }
 
-//Empty out BigNum
+// Empty out BigNum
 func (b *BigNum) Empty() bool {
 	return b.b.BitLen() == 0
 }
 
-//MarshalJSON as byte slice or error
+// MarshalJSON as byte slice or error
 func (b *BigNum) MarshalJSON() (dst []byte, err error) {
 	dst, err = marshalJSONBlob(b.b.Bytes(), base64.RawURLEncoding)
 	return
 }
 
-//UnmarshalJSON byte slice or error
+// UnmarshalJSON byte slice or error
 func (b *BigNum) UnmarshalJSON(src []byte) (err error) {
 	var dst []byte
 	if dst, err = unmarshalJSONBlob(src, base64.RawURLEncoding); err != nil {
@@ -285,25 +295,25 @@ type Blob struct {
 	B []byte
 }
 
-//Bytes of blob in byte slice
+// Bytes of blob in byte slice
 func (b *Blob) Bytes() []byte {
 	return b.B
 }
 
-//UnmarshalJSON byte slice to Blob, or error
+// UnmarshalJSON byte slice to Blob, or error
 func (b *Blob) UnmarshalJSON(src []byte) error {
 	var err error
 	b.B, err = unmarshalJSONBlob(src, base64.RawURLEncoding)
 	return err
 }
 
-//MarshalJSON blob to byte slice
+// MarshalJSON blob to byte slice
 func (b *Blob) MarshalJSON() (dst []byte, err error) {
 	dst, err = marshalJSONBlob(b.B, base64.RawURLEncoding)
 	return
 }
 
-//SetBytes of blob
+// SetBytes of blob
 func (b *Blob) SetBytes(val []byte) *Blob {
 	b.B = val
 	return b
