@@ -30,8 +30,9 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 
+	"log/slog"
+
 	"github.com/ThalesGroup/gose/jose"
-	"github.com/sirupsen/logrus"
 )
 
 //SigningKeyImpl implements a RSA signing key
@@ -154,7 +155,8 @@ func (signer *SigningKeyImpl) Sign(requested jose.KeyOps, data []byte) ([]byte, 
 	/* Calculate digest. */
 	digester := algToOptsMap[signer.jwk.Alg()].HashFunc().New()
 	if _, err := digester.Write(data); err != nil {
-		logrus.Panicf("%s", err)
+		slog.Error("hash write error", "err", err)
+		return nil, err
 	}
 	digest := digester.Sum(nil)
 	opts := algToOptsMap[signer.jwk.Alg()]

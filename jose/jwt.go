@@ -24,11 +24,10 @@ package jose
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"math"
 	"reflect"
 	"strings"
-
-	"github.com/sirupsen/logrus"
 )
 
 // Standard JWT claim names that cannot be used as untyped keys.
@@ -80,13 +79,15 @@ func unmarshalTypedClaims(claims map[string]json.RawMessage, into interface{}) (
 			values := strings.Split(tag, ",")
 			if len(values) < 1 {
 				// should never happen
-				logrus.Fatal("Broken json struct tag")
+				slog.Error("broken json struct tag")
+				return fmt.Errorf("broken json struct tag")
 			}
 			name := values[0]
 			if value, exists := claims[name]; exists {
 				if !field.CanAddr() {
 					// should never happen
-					logrus.Fatal("Broken json struct type, must be addressable")
+					slog.Error("broken json struct type, must be addressable")
+					return fmt.Errorf("broken json struct type, must be addressable")
 				}
 				if err = json.Unmarshal(value, field.Addr().Interface()); err != nil {
 					return

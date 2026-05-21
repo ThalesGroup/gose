@@ -28,8 +28,9 @@ import (
 	"encoding/pem"
 	"math/big"
 
+	"log/slog"
+
 	"github.com/ThalesGroup/gose/jose"
-	"github.com/sirupsen/logrus"
 )
 
 // ECVerificationKeyImpl implements the ECDSA Verification Logic
@@ -72,7 +73,8 @@ func (verifier *ECVerificationKeyImpl) Verify(operation jose.KeyOps, data []byte
 	}
 	hasher := opts.HashFunc().New()
 	if _, err := hasher.Write([]byte(data)); err != nil {
-		logrus.Panicf("%s", err)
+		slog.Error("hash write error", "err", err)
+		return false
 	}
 
 	// Verify the signature

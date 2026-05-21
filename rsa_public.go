@@ -28,8 +28,9 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+	"log/slog"
+
 	"github.com/ThalesGroup/gose/jose"
-	"github.com/sirupsen/logrus"
 )
 
 //RsaPublicKeyImpl implements RSA verification and encryption APIs
@@ -103,7 +104,8 @@ func (k *RsaPublicKeyImpl) Verify(operation jose.KeyOps, data []byte, signature 
 	}
 	digester := algToOptsMap[k.jwk.Alg()].HashFunc().New()
 	if _, err := digester.Write(data); err != nil {
-		logrus.Panicf("%s", err)
+		slog.Error("hash write error", "err", err)
+		return false
 	}
 	digest := digester.Sum(nil)
 	var err error
