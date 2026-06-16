@@ -68,8 +68,14 @@ func (encryptor *JweDirectEncryptorBlock) Encrypt(plaintext, aad []byte) (string
 	iv := encryptor.iv
 	// JWE header
 	jweProtectedHeader := encryptor.makeJweProtectedHeader()
-	// AAD
-	//  = ASCII(BASE64URL(UTF8(JWE Protected Header)))
+	// Store the plaintext length in OtherAad BEFORE marshalling the header so
+	// that the AAD bytes fed to HMAC during encryption are identical to those
+	// the verifier will reconstruct during decryption (which sees the full
+	// serialised header including this field).
+	jweProtectedHeader.OtherAad = &jose.Blob{
+		B: uintToBytesBigEndian(uint64(len(plaintext))),
+	}
+	// AAD = ASCII(BASE64URL(UTF8(JWE Protected Header)))
 	if aad, err = jweProtectedHeader.MarshalProtectedHeader(); err != nil {
 		return "", fmt.Errorf("error marshalling the JWE Header: %v", err)
 	}
@@ -78,20 +84,8 @@ func (encryptor *JweDirectEncryptorBlock) Encrypt(plaintext, aad []byte) (string
 	// HMAC computation
 	outputHmac := encryptor.jweVerifier.ComputeHash(aad, iv, ciphertext)
 	// Create Authentication Tag
-	//  = the first half of the hash
-	// THE TAG HAS TO BE VERIFIED WHEN THIS SAME JWE IS USED FOR DECRYPTION.
-	// BEWARE that taking half of the hash for integrity check is part of the rfc 7516 :
-	// https://datatracker.ietf.org/doc/html/rfc7516#appendix-B.7
-	// I am not sure if we have to follow the specifications or get the max of the length of the hash to maximize the security
 	//tag := outputHmac[:(len(outputHmac) / 2)]
 	tag := outputHmac
-
-	// Create the JWE
-	// we store the length of the plaintext in the additional data held by the protected header.
-	// It can be used to return the proper plaintext after decryption.
-	jweProtectedHeader.OtherAad = &jose.Blob{
-		B: uintToBytesBigEndian(uint64(len(plaintext))),
-	}
 	jwe := &jose.JweRfc7516Compact{
 		ProtectedHeader:      *jweProtectedHeader,
 		EncryptedKey:         nil,

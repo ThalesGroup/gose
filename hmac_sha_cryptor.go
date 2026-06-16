@@ -38,16 +38,18 @@ func (h HmacShaCryptor) Kid() string {
 	return h.kid
 }
 
-// Hash returns the result from the SHA operation executed by the provided key
+// Hash returns the HMAC of input using the underlying hash key.
+//
+// The supplied hash.Hash is consumed by this single operation: the caller is
+// expected to provide a freshly initialised HMAC (one per encrypt/decrypt), so
+// we feed the whole input with Write and finalise with Sum. This must not call
+// Sum(input): the hash.Hash contract appends the digest to its argument rather
+// than hashing it, which would compute HMAC of an empty message.
 func (h HmacShaCryptor) Hash(input []byte) []byte {
-	// preprocess the size of the final output
-	outputSize := h.hash.Size()
-	// Sum() concatenates the input with the hash result
-	appendedOutput := h.hash.Sum(input)
-	// extract the hash result from the hash output
-	res := make([]byte, outputSize)
-	copy(res, appendedOutput[len(input):])
-	return res
+	if _, err := h.hash.Write(input); err != nil {
+		panic(err)
+	}
+	return h.hash.Sum(nil)
 }
 
 // NewHmacShaCryptor create a new instance of an HmacShaCryptor from the supplied parameters.
