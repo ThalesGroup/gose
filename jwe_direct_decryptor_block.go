@@ -1,23 +1,5 @@
-// Copyright 2024 Thales Group
-//
-// Permission is hereby granted, free of charge, to any person obtaining
-// a copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to
-// permit persons to whom the Software is furnished to do so, subject to
-// the following conditions:
-//
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-// LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-// OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-// WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+// SPDX-FileCopyrightText: 2026 Thales Group and the gose Contributors
+// SPDX-License-Identifier: MIT
 
 package gose
 
@@ -73,8 +55,19 @@ func (decryptor *JweDirectDecryptorBlock) Decrypt(marshalledJwe string) (plainte
 
 	// get the size of the final plaintext
 	//input, err := jwe.ProtectedHeader.OtherAad.MarshalJSON()
+	if jwe.ProtectedHeader.OtherAad == nil {
+		return nil, nil, fmt.Errorf("error decoding plaintext length: missing length header")
+	}
 	data := jwe.ProtectedHeader.OtherAad.B
+	// Validate before use: a truncated field panics BigEndian.Uint64; an oversized
+	// value causes OOM; nil OtherAad was already rejected above.
+	if len(data) < 8 {
+		return nil, nil, fmt.Errorf("error decoding plaintext length: header field too short")
+	}
 	plaintextLength := binary.BigEndian.Uint64(data)
+	if plaintextLength > uint64(len(plaintextBlock)) {
+		return nil, nil, fmt.Errorf("error decoding plaintext: declared length %d exceeds decrypted length %d", plaintextLength, len(plaintextBlock))
+	}
 	plaintext = make([]byte, plaintextLength)
 	copy(plaintext, plaintextBlock[:plaintextLength])
 

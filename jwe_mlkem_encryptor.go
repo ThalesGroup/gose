@@ -1,23 +1,5 @@
-// Copyright 2026 Thales Group
-//
-// Permission is hereby granted, free of charge, to any person obtaining
-// a copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to
-// permit persons to whom the Software is furnished to do so, subject to
-// the following conditions:
-//
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-// LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-// OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-// WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+// SPDX-FileCopyrightText: 2026 Thales Group and the gose Contributors
+// SPDX-License-Identifier: MIT
 
 package gose
 
@@ -59,6 +41,8 @@ func (e *JweMlKemEncryptorImpl) Encrypt(plaintext, aad []byte) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("jwe mlkem: encapsulation failed: %w", err)
 	}
+	// Scrub the KEM shared secret once we are done with it.
+	defer clear(sharedSecret)
 
 	// Step 2: Build the full protected header including kem-ct.
 	// kem-ct is part of the header so it is integrity-protected by AES-GCM AAD.
@@ -85,10 +69,11 @@ func (e *JweMlKemEncryptorImpl) Encrypt(plaintext, aad []byte) (string, error) {
 
 	// Step 4: Derive CEK via KMAC.
 	cek := deriveMlKemCEK(alg, sharedSecret, marshalledHeader, cekLen)
+	defer clear(cek)
 
 	// Step 5: Generate IV and encrypt with AES-GCM.
 	iv := make([]byte, ivSize)
-	if _, err = e.randomSource.Read(iv); err != nil {
+	if _, err = io.ReadFull(e.randomSource, iv); err != nil {
 		return "", fmt.Errorf("jwe mlkem: failed to generate IV: %w", err)
 	}
 	block, err := aes.NewCipher(cek)
