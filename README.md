@@ -1,6 +1,13 @@
 
 # GOSE - JOSE and friends for the Go developer
 
+[![Build](https://github.com/ThalesGroup/gose/actions/workflows/ci.yml/badge.svg)](https://github.com/ThalesGroup/gose/actions/workflows/ci.yml)
+[![Lint](https://github.com/ThalesGroup/gose/actions/workflows/lint.yml/badge.svg)](https://github.com/ThalesGroup/gose/actions/workflows/lint.yml)
+[![Secret Scan](https://github.com/ThalesGroup/gose/actions/workflows/secret-scan.yml/badge.svg)](https://github.com/ThalesGroup/gose/actions/workflows/secret-scan.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/ThalesGroup/gose/badge)](https://scorecard.dev/viewer/?uri=github.com/ThalesGroup/gose)
+[![Go Report Card](https://goreportcard.com/badge/github.com/ThalesGroup/gose)](https://goreportcard.com/report/github.com/ThalesGroup/gose)
+[![GitHub release](https://img.shields.io/github/v/release/ThalesGroup/gose)](https://github.com/ThalesGroup/gose/releases/latest)
+
 ## Overview
 
 GOSE is JOSE/JWT/JWK/JWS/JWKS implemented in Go with Helpers, and examples.
