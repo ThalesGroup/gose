@@ -1,4 +1,4 @@
-.PHONY: all clean lint vet coverage
+.PHONY: all clean lint vet coverage notices
 GOCMD:=go
 GOCLEAN:=$(GOCMD) clean
 GOTEST:=$(GOCMD) test
@@ -26,3 +26,8 @@ coverage: coverage.out
 
 coverage.out: $(SRCS)
 		$(GOTEST) -gcflags=-l -coverprofile coverage.out ./...
+
+## Licenses
+notices:
+		@go-licenses report ./... --ignore github.com/ThalesGroup/gose,github.com/ThalesGroup/crypto11,github.com/eclipse-keypont/pkcs11-go --template go-licenses.tpl > NOTICES.md
+		@echo "NOTICES.md generated"
