@@ -14,10 +14,10 @@ import (
 
 // JweMlKemEncryptorImpl encrypts plaintext into a compact JWE using ML-KEM direct key agreement.
 //
-// Construction (draft-reddy-cose-jose-pqc-kem):
+// Construction (draft-ietf-jose-pqc-kem-05):
 //  1. KEM encapsulate using recipient public key → (kemCt, sharedSecret)
-//  2. Build protected header including kem-ct (binds kemCt to the derived key)
-//  3. CEK = KMAC(K=sharedSecret, X=marshalledHeader, L=cekLen, S="")
+//  2. Build protected header including ek (integrity-protected by AES-GCM AAD)
+//  3. CEK = KMAC(K=sharedSecret, X=be32(len(alg))||alg||be32(keyLenBits), L=cekLen, S="")
 //  4. Encrypt plaintext with AES-GCM(CEK, IV, AAD=marshalledHeader)
 //  5. Produce compact JWE; EncryptedKey field is empty (direct key agreement)
 type JweMlKemEncryptorImpl struct {
@@ -44,17 +44,16 @@ func (e *JweMlKemEncryptorImpl) Encrypt(plaintext, aad []byte) (string, error) {
 	// Scrub the KEM shared secret once we are done with it.
 	defer clear(sharedSecret)
 
-	// Step 2: Build the full protected header including kem-ct.
-	// kem-ct is part of the header so it is integrity-protected by AES-GCM AAD.
-	kemCtBlob := &jose.Blob{}
-	kemCtBlob.SetBytes(kemCt)
+	// Step 2: Build protected header with ek (integrity-protected by AES-GCM AAD).
+	ekBlob := &jose.Blob{}
+	ekBlob.SetBytes(kemCt)
 	header := &jose.JweProtectedHeader{
 		JwsHeader: jose.JwsHeader{
 			Alg: alg,
 			Kid: e.recipientKey.Kid(),
 		},
-		Enc:   enc,
-		KemCt: kemCtBlob,
+		Enc: enc,
+		Ek:  ekBlob,
 	}
 	if aad != nil {
 		header.OtherAad = &jose.Blob{}
@@ -68,7 +67,7 @@ func (e *JweMlKemEncryptorImpl) Encrypt(plaintext, aad []byte) (string, error) {
 	}
 
 	// Step 4: Derive CEK via KMAC.
-	cek := deriveMlKemCEK(alg, sharedSecret, marshalledHeader, cekLen)
+	cek := deriveMlKemCEK(alg, sharedSecret, cekLen)
 	defer clear(cek)
 
 	// Step 5: Generate IV and encrypt with AES-GCM.

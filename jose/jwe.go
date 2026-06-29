@@ -54,9 +54,9 @@ type JweProtectedHeader struct {
 	JweCustomHeaderFields
 	Enc   Enc   `json:"enc"`
 	Zip   Zip   `json:"zip,omitempty"`
-	// KemCt carries the PQC KEM ciphertext for ML-KEM algorithms (draft-reddy-cose-jose-pqc-kem).
+	// Ek carries the PQC KEM encapsulation (ciphertext) for ML-KEM algorithms (draft-ietf-jose-pqc-kem-05 §3.1).
 	// The JWE Encrypted Key field is empty when this is present in direct key-agreement mode.
-	KemCt *Blob `json:"kem-ct,omitempty"`
+	Ek *Blob `json:"ek,omitempty"`
 }
 
 // HeaderRfc7516

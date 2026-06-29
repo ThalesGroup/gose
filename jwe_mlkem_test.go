@@ -152,8 +152,8 @@ func TestJweMlKem_CompactStructure(t *testing.T) {
 	assert.Equal(t, jose.AlgMLKEM768KMAC256, header.Alg)
 	assert.Equal(t, jose.EncA256GCM, header.Enc)
 	assert.Equal(t, "struct-key", header.Kid)
-	require.NotNil(t, header.KemCt, "kem-ct must be present in header")
-	assert.NotEmpty(t, header.KemCt.Bytes())
+	require.NotNil(t, header.Ek, "ek must be present in header")
+	assert.NotEmpty(t, header.Ek.Bytes())
 
 	// EncryptedKey must be empty (direct key agreement mode).
 	assert.Empty(t, parts[1], "EncryptedKey must be empty for direct key agreement")

@@ -25,19 +25,29 @@ var mlkemCekSize = map[jose.Alg]int{
 }
 
 // deriveMlKemCEK derives a content encryption key from an ML-KEM shared secret using KMAC
-// as specified in draft-reddy-cose-jose-pqc-kem.
+// as specified in draft-ietf-jose-pqc-kem-05 §4.1.
 //
 // Parameters per NIST SP 800-185:
 //   - K (key):        sharedSecret from KEM encapsulation/decapsulation
-//   - X (data):       marshalledHeader — the base64url-encoded JWE protected header,
-//                     which binds the KEM ciphertext and algorithm to the derived key
+//   - X (data):       be32(len(alg)) || alg || be32(outputLen*8)  — AlgorithmID || SuppPubInfo
 //   - L (outputLen):  CEK size in bytes (16 or 32)
-//   - S (customization): empty string, as specified by the draft
-func deriveMlKemCEK(alg jose.Alg, sharedSecret, marshalledHeader []byte, outputLen int) []byte {
+//   - S (customization): empty string
+func deriveMlKemCEK(alg jose.Alg, sharedSecret []byte, outputLen int) []byte {
+	// X = be32(len(alg)) || alg || be32(outputLen*8) per draft-ietf-jose-pqc-kem-05 §4.1
+	algBytes := []byte(alg)
+	x := make([]byte, 0, 4+len(algBytes)+4)
+	x = appendBE32(x, uint32(len(algBytes)))
+	x = append(x, algBytes...)
+	x = appendBE32(x, uint32(outputLen*8))
 	if alg == jose.AlgMLKEM512KMAC128 {
-		return kmac128(sharedSecret, marshalledHeader, outputLen)
+		return kmac128(sharedSecret, x, outputLen)
 	}
-	return kmac256(sharedSecret, marshalledHeader, outputLen)
+	return kmac256(sharedSecret, x, outputLen)
+}
+
+// appendBE32 appends v as a big-endian 32-bit unsigned integer to b.
+func appendBE32(b []byte, v uint32) []byte {
+	return append(b, byte(v>>24), byte(v>>16), byte(v>>8), byte(v))
 }
 
 // kmac128 computes KMAC128(K=key, X=data, L=outputLen bytes, S="") per NIST SP 800-185.

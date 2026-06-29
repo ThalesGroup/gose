@@ -13,12 +13,12 @@ import (
 
 // JweMlKemDecryptorImpl decrypts a compact JWE produced by JweMlKemEncryptorImpl.
 //
-// Decryption (draft-reddy-cose-jose-pqc-kem):
-//  1. Parse compact JWE; validate alg and presence of kem-ct header
+// Decryption (draft-ietf-jose-pqc-kem-05):
+//  1. Parse compact JWE; validate alg and presence of ek header
 //  2. Look up DecapsPrivMlKemKey by kid from keystore
-//  3. KEM decapsulate kem-ct → sharedSecret
-//  4. Re-marshal protected header → marshalledHeader (same bytes as encryption-time AAD)
-//  5. CEK = KMAC(K=sharedSecret, X=marshalledHeader, L=cekLen, S="")
+//  3. KEM decapsulate ek → sharedSecret
+//  4. Re-marshal protected header → AAD (must match encryption-time bytes)
+//  5. CEK = KMAC(K=sharedSecret, X=be32(len(alg))||alg||be32(keyLenBits), L=cekLen, S="")
 //  6. Decrypt AES-GCM(CEK, IV, ciphertext||tag, AAD=marshalledHeader) → plaintext
 type JweMlKemDecryptorImpl struct {
 	keystore DecapsPrivMlKemKeyStore
@@ -43,9 +43,9 @@ func (d *JweMlKemDecryptorImpl) Decrypt(jweRaw string) (plaintext, aad []byte, e
 		return nil, nil, fmt.Errorf("jwe mlkem: unsupported algorithm %q", alg)
 	}
 
-	// Step 2: Validate kem-ct is present and non-empty.
-	if jwe.ProtectedHeader.KemCt == nil || len(jwe.ProtectedHeader.KemCt.Bytes()) == 0 {
-		return nil, nil, fmt.Errorf("jwe mlkem: missing kem-ct header parameter")
+	// Step 2: Validate ek is present and non-empty.
+	if jwe.ProtectedHeader.Ek == nil || len(jwe.ProtectedHeader.Ek.Bytes()) == 0 {
+		return nil, nil, fmt.Errorf("jwe mlkem: missing ek header parameter")
 	}
 
 	// Step 3: Look up decapsulation key by kid.
@@ -58,23 +58,23 @@ func (d *JweMlKemDecryptorImpl) Decrypt(jweRaw string) (plaintext, aad []byte, e
 	}
 
 	// Step 4: KEM decapsulate.
-	sharedSecret, err := privKey.Decapsulate(jwe.ProtectedHeader.KemCt.Bytes())
+	sharedSecret, err := privKey.Decapsulate(jwe.ProtectedHeader.Ek.Bytes())
 	if err != nil {
 		return nil, nil, fmt.Errorf("jwe mlkem: decapsulation failed: %w", err)
 	}
 	// The KEM shared secret is highly sensitive; scrub it after use.
 	defer clear(sharedSecret)
 
-	// Step 5: Re-marshal the protected header to recover the exact AAD / KDF context.
+	// Step 5: Re-marshal the protected header to recover the AAD for AES-GCM.
 	// Go's encoding/json marshals struct fields in declaration order, so re-marshalling
 	// the parsed struct produces the same bytes as the original (provided no unknown fields).
 	marshalledHeader, err := jwe.ProtectedHeader.MarshalProtectedHeader()
 	if err != nil {
-		return nil, nil, fmt.Errorf("jwe mlkem: failed to marshal header for KDF: %w", err)
+		return nil, nil, fmt.Errorf("jwe mlkem: failed to marshal header for AAD: %w", err)
 	}
 
-	// Step 6: Derive CEK via KMAC.
-	cek := deriveMlKemCEK(alg, sharedSecret, marshalledHeader, cekLen)
+	// Step 6: Derive CEK via KMAC (alg + keyLen only; no header binding per draft-ietf-jose-pqc-kem-05 §4.1).
+	cek := deriveMlKemCEK(alg, sharedSecret, cekLen)
 	defer clear(cek)
 
 	// Step 7: Decrypt with AES-GCM.
