@@ -87,24 +87,21 @@ const (
 	// we need to support both of these modes in gose implementation.
 	AlgRSAOAEPSHA1 Alg = "RSA-OAEP"
 	AlgRSAOAEPSHA2 Alg = "RSA-OAEP"
-	// ML-KEM direct key agreement: KDF output is the CEK (draft-reddy-cose-jose-pqc-kem)
-	AlgMLKEM512  Alg = "MLKEM512-KMAC128"
-	AlgMLKEM768  Alg = "MLKEM768-KMAC256"
-	AlgMLKEM1024 Alg = "MLKEM1024-KMAC256"
-	// ML-KEM with AES key wrapping: KDF output wraps a random CEK via AES-KW
-	AlgMLKEM512AES128KW  Alg = "MLKEM512-KMAC128-AES128KW"
-	AlgMLKEM768AES256KW  Alg = "MLKEM768-KMAC256-AES256KW"
-	AlgMLKEM1024AES256KW Alg = "MLKEM1024-KMAC256-AES256KW"
-	// AlgMLKEM512KMAC128, AlgMLKEM768KMAC256, AlgMLKEM1024KMAC256 are here to name the specific
-	// KDF variant in code (e.g. switch case statements). They have the same value as the short-form
-	// aliases above.
-	AlgMLKEM512KMAC128  Alg = "MLKEM512-KMAC128"
-	AlgMLKEM768KMAC256  Alg = "MLKEM768-KMAC256"
-	AlgMLKEM1024KMAC256 Alg = "MLKEM1024-KMAC256"
-	// AlgMLKEM512KMAC128AES128KW, etc. have the same value as the short-form AES-KW aliases above.
-	AlgMLKEM512KMAC128AES128KW  Alg = "MLKEM512-KMAC128-AES128KW"
-	AlgMLKEM768KMAC256AES256KW  Alg = "MLKEM768-KMAC256-AES256KW"
-	AlgMLKEM1024KMAC256AES256KW Alg = "MLKEM1024-KMAC256-AES256KW"
+	// ML-KEM direct key agreement (draft-ietf-jose-pqc-kem-05 §2)
+	AlgMLKEM512  Alg = "ML-KEM-512"
+	AlgMLKEM768  Alg = "ML-KEM-768"
+	AlgMLKEM1024 Alg = "ML-KEM-1024"
+	// ML-KEM with AES key wrapping (draft-ietf-jose-pqc-kem-05 §2)
+	AlgMLKEM512AES128KW  Alg = "ML-KEM-512+A128KW"
+	AlgMLKEM768AES256KW  Alg = "ML-KEM-768+A192KW"
+	AlgMLKEM1024AES256KW Alg = "ML-KEM-1024+A256KW"
+	// Long-form aliases — same values as the short-form constants above.
+	AlgMLKEM512KMAC128  Alg = "ML-KEM-512"
+	AlgMLKEM768KMAC256  Alg = "ML-KEM-768"
+	AlgMLKEM1024KMAC256 Alg = "ML-KEM-1024"
+	AlgMLKEM512KMAC128AES128KW  Alg = "ML-KEM-512+A128KW"
+	AlgMLKEM768KMAC256AES256KW  Alg = "ML-KEM-768+A192KW"
+	AlgMLKEM1024KMAC256AES256KW Alg = "ML-KEM-1024+A256KW"
 
 	//CrvP256 NIST P-256
 	CrvP256 Crv = "P-256"
