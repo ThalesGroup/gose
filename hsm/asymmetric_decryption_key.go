@@ -10,8 +10,8 @@ import (
 	"log/slog"
 
 	"github.com/ThalesGroup/crypto11"
-	"github.com/ThalesGroup/gose"
-	"github.com/ThalesGroup/gose/jose"
+	"github.com/eclipse-keypont/gose"
+	"github.com/eclipse-keypont/gose/jose"
 )
 
 // AsymmetricDecryptionKey implements RSA OAEP using SHA1 decryption.

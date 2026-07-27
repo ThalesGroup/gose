@@ -4,7 +4,7 @@
 package gose
 
 import (
-	"github.com/ThalesGroup/gose/jose"
+	"github.com/eclipse-keypont/gose/jose"
 )
 
 // gcmAlgToEncMap maps GCM key algorithms to their JWE enc header values.

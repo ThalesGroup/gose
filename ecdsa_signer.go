@@ -13,7 +13,7 @@ import (
 	"encoding/pem"
 	"log/slog"
 
-	"github.com/ThalesGroup/gose/jose"
+	"github.com/eclipse-keypont/gose/jose"
 	"math/big"
 )
 

@@ -5,7 +5,7 @@ package hsm
 
 import (
 	"github.com/ThalesGroup/crypto11"
-	"github.com/ThalesGroup/gose"
+	"github.com/eclipse-keypont/gose"
 )
 
 // AsymmetricDecryptionKeyStore implements the AsymmetricDecryptionKeyStore interface providing key lookup

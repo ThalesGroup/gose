@@ -5,8 +5,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/ThalesGroup/gose"
-	"github.com/ThalesGroup/gose/jose"
+	"github.com/eclipse-keypont/gose"
+	"github.com/eclipse-keypont/gose/jose"
 	"os"
 )
 

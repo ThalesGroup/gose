@@ -7,7 +7,7 @@ import (
 	"crypto/x509"
 	"math"
 
-	"github.com/ThalesGroup/gose/jose"
+	"github.com/eclipse-keypont/gose/jose"
 )
 
 var (

@@ -9,7 +9,7 @@ import (
 	"crypto/cipher"
 	"crypto/rsa"
 	"fmt"
-	"github.com/ThalesGroup/gose/jose"
+	"github.com/eclipse-keypont/gose/jose"
 	"io"
 )
 

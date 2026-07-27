@@ -7,7 +7,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/ThalesGroup/gose/jose"
+	"github.com/eclipse-keypont/gose/jose"
 	"github.com/stretchr/testify/assert"
 )
 

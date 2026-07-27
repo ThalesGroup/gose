@@ -13,7 +13,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ThalesGroup/gose/jose"
+	"github.com/eclipse-keypont/gose/jose"
 )
 
 // Interface wrapper to allow mocking of http client.

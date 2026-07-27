@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ThalesGroup/gose/jose"
+	"github.com/eclipse-keypont/gose/jose"
 )
 
 // JwtVerifierImpl implements the JWT Verification API

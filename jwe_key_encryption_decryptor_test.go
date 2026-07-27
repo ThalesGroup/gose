@@ -7,7 +7,7 @@ import (
 	"bytes"
 	"crypto"
 	"crypto/rand"
-	"github.com/ThalesGroup/gose/jose"
+	"github.com/eclipse-keypont/gose/jose"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"

@@ -12,7 +12,7 @@ import (
 
 	"log/slog"
 
-	"github.com/ThalesGroup/gose/jose"
+	"github.com/eclipse-keypont/gose/jose"
 )
 
 // ECVerificationKeyImpl implements the ECDSA Verification Logic

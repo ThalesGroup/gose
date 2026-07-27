@@ -6,7 +6,7 @@ package gose
 import (
 	"encoding/binary"
 	"fmt"
-	"github.com/ThalesGroup/gose/jose"
+	"github.com/eclipse-keypont/gose/jose"
 )
 
 type JweDirectDecryptorBlock struct {

@@ -14,7 +14,7 @@ import (
 
 	"log/slog"
 
-	"github.com/ThalesGroup/gose/jose"
+	"github.com/eclipse-keypont/gose/jose"
 )
 
 //SigningKeyImpl implements a RSA signing key

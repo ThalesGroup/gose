@@ -24,7 +24,7 @@ import (
 	"encoding/json"
 	"log/slog"
 
-	"github.com/ThalesGroup/gose/jose"
+	"github.com/eclipse-keypont/gose/jose"
 )
 
 const (

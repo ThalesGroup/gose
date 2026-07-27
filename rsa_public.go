@@ -12,7 +12,7 @@ import (
 	"encoding/pem"
 	"log/slog"
 
-	"github.com/ThalesGroup/gose/jose"
+	"github.com/eclipse-keypont/gose/jose"
 )
 
 //RsaPublicKeyImpl implements RSA verification and encryption APIs

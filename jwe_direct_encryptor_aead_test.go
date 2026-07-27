@@ -7,7 +7,7 @@ import (
 	"log"
 	"testing"
 
-	"github.com/ThalesGroup/gose/jose"
+	"github.com/eclipse-keypont/gose/jose"
 	"github.com/stretchr/testify/mock"
 
 	"github.com/stretchr/testify/assert"

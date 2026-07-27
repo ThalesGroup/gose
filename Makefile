@@ -29,5 +29,5 @@ coverage.out: $(SRCS)
 
 ## Licenses
 notices:
-		@go-licenses report ./... --ignore github.com/ThalesGroup/gose,github.com/ThalesGroup/crypto11,github.com/eclipse-keypont/pkcs11-go --template go-licenses.tpl > NOTICES.md
+		@go-licenses report ./... --ignore github.com/eclipse-keypont/gose,github.com/ThalesGroup/crypto11,github.com/eclipse-keypont/pkcs11-go --template go-licenses.tpl > NOTICES.md
 		@echo "NOTICES.md generated"

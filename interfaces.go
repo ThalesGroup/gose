@@ -9,7 +9,7 @@ import (
 	"crypto/x509"
 	"fmt"
 
-	"github.com/ThalesGroup/gose/jose"
+	"github.com/eclipse-keypont/gose/jose"
 )
 
 //InvalidFormat is an interface for handling invalid format errors

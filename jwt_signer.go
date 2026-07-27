@@ -8,7 +8,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/ThalesGroup/gose/jose"
+	"github.com/eclipse-keypont/gose/jose"
 	"github.com/google/uuid"
 )
 
