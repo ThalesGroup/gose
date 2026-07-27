@@ -147,32 +147,6 @@ type AsymmetricDecryptionKeyStore interface {
 	Get(kid string) (k AsymmetricDecryptionKey, err error)
 }
 
-// EncapsPubMlKemKey holds an ML-KEM public key and produces a KEM ciphertext + shared secret.
-// "Encaps" = encapsulation (public side), "Pub" = public key.
-type EncapsPubMlKemKey interface {
-	Key
-	MarshalableKey
-	Algorithmed
-	// Encapsulate generates a fresh (kemCiphertext, sharedSecret) pair using the recipient's public key.
-	Encapsulate() (kemCiphertext, sharedSecret []byte, err error)
-}
-
-// DecapsPrivMlKemKey holds an ML-KEM private key and recovers the shared secret from a KEM ciphertext.
-// "Decaps" = decapsulation (private side), "Priv" = private key.
-type DecapsPrivMlKemKey interface {
-	Key
-	Algorithmed
-	// Decapsulate recovers the shared secret from the given KEM ciphertext.
-	Decapsulate(kemCiphertext []byte) (sharedSecret []byte, err error)
-	// Encapsulator returns the matching public encapsulation key.
-	Encapsulator() (EncapsPubMlKemKey, error)
-}
-
-// DecapsPrivMlKemKeyStore looks up ML-KEM private (decapsulation) keys by kid.
-type DecapsPrivMlKemKeyStore interface {
-	Get(kid string) (k DecapsPrivMlKemKey, err error)
-}
-
 // JweEncryptor implements encryption of arbitary plaintext into a compact JWE as defined by https://tools.ietf.org/html/rfc7516.
 type JweEncryptor interface {
 	Encrypt(plaintext, aad []byte) (string, error)

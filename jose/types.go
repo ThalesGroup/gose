@@ -87,21 +87,6 @@ const (
 	// we need to support both of these modes in gose implementation.
 	AlgRSAOAEPSHA1 Alg = "RSA-OAEP"
 	AlgRSAOAEPSHA2 Alg = "RSA-OAEP"
-	// ML-KEM direct key agreement (draft-ietf-jose-pqc-kem-05 §2)
-	AlgMLKEM512  Alg = "ML-KEM-512"
-	AlgMLKEM768  Alg = "ML-KEM-768"
-	AlgMLKEM1024 Alg = "ML-KEM-1024"
-	// ML-KEM with AES key wrapping (draft-ietf-jose-pqc-kem-05 §2)
-	AlgMLKEM512AES128KW  Alg = "ML-KEM-512+A128KW"
-	AlgMLKEM768AES256KW  Alg = "ML-KEM-768+A192KW"
-	AlgMLKEM1024AES256KW Alg = "ML-KEM-1024+A256KW"
-	// Long-form aliases — same values as the short-form constants above.
-	AlgMLKEM512KMAC128  Alg = "ML-KEM-512"
-	AlgMLKEM768KMAC256  Alg = "ML-KEM-768"
-	AlgMLKEM1024KMAC256 Alg = "ML-KEM-1024"
-	AlgMLKEM512KMAC128AES128KW  Alg = "ML-KEM-512+A128KW"
-	AlgMLKEM768KMAC256AES256KW  Alg = "ML-KEM-768+A192KW"
-	AlgMLKEM1024KMAC256AES256KW Alg = "ML-KEM-1024+A256KW"
 
 	//CrvP256 NIST P-256
 	CrvP256 Crv = "P-256"
@@ -109,12 +94,6 @@ const (
 	CrvP384 Crv = "P-384"
 	//CrvP521 NIST P-521
 	CrvP521 Crv = "P-521"
-	// CrvMLKEM512 ML-KEM-512 parameter set (FIPS 203)
-	CrvMLKEM512 Crv = "ML-KEM-512"
-	// CrvMLKEM768 ML-KEM-768 parameter set (FIPS 203)
-	CrvMLKEM768 Crv = "ML-KEM-768"
-	// CrvMLKEM1024 ML-KEM-1024 parameter set (FIPS 203)
-	CrvMLKEM1024 Crv = "ML-KEM-1024"
 
 	// Key Types
 
@@ -124,8 +103,6 @@ const (
 	KtyEC Kty = "EC"
 	//KtyOct Octet key type
 	KtyOct Kty = "oct"
-	// KtyLWE Lattice-based key type for ML-KEM (provisional; draft-reddy-cose-jose-pqc-kem)
-	KtyLWE Kty = "LWE"
 
 	//KeyUseEnc encryption usage
 	KeyUseEnc KeyUse = "enc"
