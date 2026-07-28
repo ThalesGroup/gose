@@ -63,7 +63,7 @@ govulncheck:
 
 ## Licenses
 notices:
-	@go-licenses report ./... --ignore github.com/eclipse-keypont/gose/v2,github.com/eclipse-keypont/crypto11/v2,github.com/eclipse-keypont/pkcs11-go --template go-licenses.tpl > NOTICES.md
+	@go-licenses report ./... --ignore github.com/eclipse-keypont/gose,github.com/eclipse-keypont/crypto11/v2,github.com/eclipse-keypont/pkcs11-go --template go-licenses.tpl > NOTICES.md
 	@echo "NOTICES.md generated"
 
 # ── Clean ────────────────────────────────────────────────────────────────────

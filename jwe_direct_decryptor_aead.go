@@ -3,7 +3,7 @@
 
 package gose
 
-import "github.com/eclipse-keypont/gose/v2/jose"
+import "github.com/eclipse-keypont/gose/jose"
 
 var _ JweDecryptor = (*JweDirectDecryptorAeadImpl)(nil)
 

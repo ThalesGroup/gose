@@ -1,4 +1,4 @@
-module github.com/eclipse-keypont/gose/v2
+module github.com/eclipse-keypont/gose
 
 go 1.25.0
 

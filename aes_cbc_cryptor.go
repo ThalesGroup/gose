@@ -6,7 +6,7 @@ package gose
 import (
 	"crypto/cipher"
 
-	"github.com/eclipse-keypont/gose/v2/jose"
+	"github.com/eclipse-keypont/gose/jose"
 )
 
 // AesCbcCryptor provides AES CBC encryption and decryption functions.

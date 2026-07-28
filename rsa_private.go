@@ -12,7 +12,7 @@ import (
 	"encoding/pem"
 	"log/slog"
 
-	"github.com/eclipse-keypont/gose/v2/jose"
+	"github.com/eclipse-keypont/gose/jose"
 )
 
 // RsaPrivateKeyImpl provides software based signing and decryption capabilities for use during JWT and JWE processing.

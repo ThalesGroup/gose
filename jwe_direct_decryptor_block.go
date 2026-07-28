@@ -7,7 +7,7 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"github.com/eclipse-keypont/gose/v2/jose"
+	"github.com/eclipse-keypont/gose/jose"
 )
 
 // JweDirectDecryptorBlock implements decryption of a compact JWE using direct key agreement with a block cipher.

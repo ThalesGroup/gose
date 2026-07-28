@@ -12,8 +12,8 @@ import (
 
 	"github.com/eclipse-keypont/crypto11/v2"
 
-	"github.com/eclipse-keypont/gose/v2"
-	"github.com/eclipse-keypont/gose/v2/jose"
+	"github.com/eclipse-keypont/gose"
+	"github.com/eclipse-keypont/gose/jose"
 )
 
 // AsymmetricDecryptionKey implements RSA OAEP using SHA1 decryption.

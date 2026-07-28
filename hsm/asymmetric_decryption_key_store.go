@@ -6,7 +6,7 @@ package hsm
 import (
 	"github.com/eclipse-keypont/crypto11/v2"
 
-	"github.com/eclipse-keypont/gose/v2"
+	"github.com/eclipse-keypont/gose"
 )
 
 // AsymmetricDecryptionKeyStore implements the AsymmetricDecryptionKeyStore interface providing key lookup

@@ -3,17 +3,19 @@
 All notable changes to gose are documented in this file. For the full commit-level history see
 [GitHub Releases](https://github.com/eclipse-keypont/gose/releases).
 
-## v2.0.0 — pkcs11-go, crypto11/v2 and a hardened JOSE core
+## v1.0.0 — first stable release: pkcs11-go, crypto11/v2 and a hardened JOSE core
 
-v2 is a breaking release (hence the `/v2` module path) driven by the same PKCS#11 binding swap as
-[crypto11](https://github.com/eclipse-keypont/crypto11) and [pkcs11-go](https://github.com/eclipse-keypont/pkcs11-go),
-plus a round of correctness and API fixes to the JOSE core.
+gose has been on `v0.x` since its start, with no stability contract. v1.0.0 is its first stable
+release, marking the move to the `pkcs11-go`/`crypto11/v2` stack (the same PKCS#11 binding swap as
+[crypto11](https://github.com/eclipse-keypont/crypto11) and [pkcs11-go](https://github.com/eclipse-keypont/pkcs11-go))
+plus a round of correctness and API fixes to the JOSE core. The module path stays
+`github.com/eclipse-keypont/gose` (no `/v2` suffix — that convention only applies from a library's
+second major version onward).
 
-### Breaking changes
+### Breaking changes (relative to the last v0.x release)
 
 - **PKCS#11 binding replaced**: `miekg/pkcs11` is out, [`eclipse-keypont/pkcs11-go`](https://pkg.go.dev/github.com/eclipse-keypont/pkcs11-go)
   is in, via the move to `crypto11/v2`.
-- Module path is now `github.com/eclipse-keypont/gose/v2`.
 - Repository moved from `github.com/ThalesGroup/gose` to `github.com/eclipse-keypont/gose`.
 - **ML-KEM support removed.** `draft-ietf-jose-pqc-kem-06` dropped JOSE from its scope (retitled
   "PQ KEMs for COSE"), leaving no standards-track way to express ML-KEM in JWE. Rather than ship a
@@ -71,12 +73,11 @@ plus a round of correctness and API fixes to the JOSE core.
   keyless [cosign](https://github.com/sigstore/cosign)) — see
   [Releases & verification](./README.md#releases--verification) in the README.
 
-## Pre-v2 (ThalesGroup/ThalesIgnite era, v0.x)
+## Pre-1.0 (ThalesGroup/ThalesIgnite era, v0.x)
 
 Originally maintained at `github.com/ThalesIgnite/gose`, later `github.com/ThalesGroup/gose`, built
-on `miekg/pkcs11` and `crypto11` v1. Never reached a v1.0.0 tag; the jump straight to v2.0.0 mirrors
-the same jump in its `crypto11` dependency and marks this as the first release built on the
-pkcs11-go/crypto11-v2 stack. Notable milestones:
+on `miekg/pkcs11` and `crypto11` v1, and released as `v0.7.3` – `v0.13.0-rc1` with no stability
+guarantee. Notable milestones:
 
 - Core JOSE/JWT/JWK/JWS/JWKS implementation with HSM-backed keys via `crypto11`.
 - Context support added to `TrustStore.Get` and the JWKS HTTP client.
@@ -86,7 +87,7 @@ pkcs11-go/crypto11-v2 stack. Notable milestones:
 - `logrus` removed in favor of the standard library and `log/slog`.
 - Repository moved to `github.com/eclipse-keypont/gose`.
 - Experimental ML-KEM (post-quantum) support was added against `draft-ietf-jose-pqc-kem-05`, then
-  removed in v2.0.0 once the draft dropped JOSE from its scope.
+  removed in v1.0.0 once the draft dropped JOSE from its scope.
 
 Full commit history for this era is available via `git log v0.7.3..v0.13.0-rc1` or the
 [GitHub Releases](https://github.com/eclipse-keypont/gose/releases) page.

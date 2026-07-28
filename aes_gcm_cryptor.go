@@ -8,7 +8,7 @@ import (
 	"crypto/rand"
 	"io"
 
-	"github.com/eclipse-keypont/gose/v2/jose"
+	"github.com/eclipse-keypont/gose/jose"
 )
 
 var validEncryptionOpts = []jose.KeyOps{jose.KeyOpsEncrypt}

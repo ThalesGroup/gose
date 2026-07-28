@@ -24,7 +24,7 @@ import (
 	"encoding/json"
 	"log/slog"
 
-	"github.com/eclipse-keypont/gose/v2/jose"
+	"github.com/eclipse-keypont/gose/jose"
 )
 
 const (

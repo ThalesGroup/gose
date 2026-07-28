@@ -54,4 +54,4 @@ formatters:
   settings:
     goimports:
       local-prefixes:
-        - github.com/eclipse-keypont/gose/v2
+        - github.com/eclipse-keypont/gose

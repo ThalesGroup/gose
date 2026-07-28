@@ -1,14 +1,14 @@
 
 # GOSE - JOSE and friends for the Go developer
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/eclipse-keypont/gose/v2.svg)](https://pkg.go.dev/github.com/eclipse-keypont/gose/v2)
+[![Go Reference](https://pkg.go.dev/badge/github.com/eclipse-keypont/gose.svg)](https://pkg.go.dev/github.com/eclipse-keypont/gose)
 [![Build](https://github.com/eclipse-keypont/gose/actions/workflows/ci.yml/badge.svg)](https://github.com/eclipse-keypont/gose/actions/workflows/ci.yml)
 [![Lint](https://github.com/eclipse-keypont/gose/actions/workflows/lint.yml/badge.svg)](https://github.com/eclipse-keypont/gose/actions/workflows/lint.yml)
 [![Secret Scan](https://github.com/eclipse-keypont/gose/actions/workflows/secret-scan.yml/badge.svg)](https://github.com/eclipse-keypont/gose/actions/workflows/secret-scan.yml)
 [![Release](https://github.com/eclipse-keypont/gose/actions/workflows/release.yml/badge.svg)](https://github.com/eclipse-keypont/gose/actions/workflows/release.yml)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/eclipse-keypont/gose/badge)](https://scorecard.dev/viewer/?uri=github.com/eclipse-keypont/gose)
 [![GitHub release](https://img.shields.io/github/v/release/eclipse-keypont/gose)](https://github.com/eclipse-keypont/gose/releases/latest)
-[![Changelog](https://img.shields.io/badge/changelog-v1%20%E2%86%92%20v2-blue)](./CHANGELOG.md)
+[![Changelog](https://img.shields.io/badge/changelog-v0.x%20%E2%86%92%20v1.0.0-blue)](./CHANGELOG.md)
 
 ## Overview
 
@@ -21,7 +21,8 @@ scanning, dependency review, and an OpenSSF Scorecard rating gate every push, an
 and SLSA3-attested rather than just pushed — see [Releases & verification](#releases--verification) below for
 what ships and how to check it.
 
-Upgrading from v1? See [CHANGELOG.md](./CHANGELOG.md) for the breaking changes and what's new in v2.0.0.
+Upgrading from a pre-1.0 release? See [CHANGELOG.md](./CHANGELOG.md) for the breaking changes and
+what's new in v1.0.0.
 
 ## Known Issues
 

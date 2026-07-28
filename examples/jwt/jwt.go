@@ -11,8 +11,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/eclipse-keypont/gose/v2"
-	"github.com/eclipse-keypont/gose/v2/jose"
+	"github.com/eclipse-keypont/gose"
+	"github.com/eclipse-keypont/gose/jose"
 )
 
 const (
