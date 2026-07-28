@@ -24,6 +24,13 @@ what ships and how to check it.
 Upgrading from a pre-1.0 release? See [CHANGELOG.md](./CHANGELOG.md) for the breaking changes and
 what's new in v1.0.0.
 
+## Part of Eclipse Keypont
+
+gose is part of [Eclipse Keypont](https://projects.eclipse.org/projects/technology.keypont), alongside
+[crypto11](https://github.com/eclipse-keypont/crypto11) and [pkcs11-go](https://github.com/eclipse-keypont/pkcs11-go).
+*Keypont* — "key" plus the French *pont* ("bridge") — reflects the project's goal: bridging Go
+applications to cryptographic keys held in HSMs and other PKCS#11-backed hardware.
+
 ## Known Issues
 
 * Direct encryption with AEAD mechanisms is not completely following [RFC 7516](https://tools.ietf.org/html/rfc7516)
