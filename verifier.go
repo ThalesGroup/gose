@@ -16,7 +16,7 @@ var (
 	}
 )
 
-//NewVerificationKey for jwk or error
+// NewVerificationKey for jwk or error
 func NewVerificationKey(jwk jose.Jwk) (VerificationKey, error) {
 	/* Check jwk can be used to verify */
 	ops := validVerificationOps
@@ -62,7 +62,7 @@ func NewVerificationKey(jwk jose.Jwk) (VerificationKey, error) {
 		}
 		return nil, ErrUnsupportedKeyType
 	case *jose.PublicEcKey:
-		if !(jwk.Alg() == jose.AlgES256 || jwk.Alg() == jose.AlgES384 || jwk.Alg() == jose.AlgES512) {
+		if jwk.Alg() != jose.AlgES256 && jwk.Alg() != jose.AlgES384 && jwk.Alg() != jose.AlgES512 {
 			return nil, ErrUnsupportedKeyType
 		}
 		var result ECVerificationKeyImpl

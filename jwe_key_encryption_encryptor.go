@@ -9,8 +9,9 @@ import (
 	"crypto/cipher"
 	"crypto/rsa"
 	"fmt"
-	"github.com/eclipse-keypont/gose/jose"
 	"io"
+
+	"github.com/eclipse-keypont/gose/jose"
 )
 
 const cekSize uint8 = 32
@@ -23,8 +24,7 @@ const cekAlgorithm = jose.AlgA256GCM
 type JweRsaKeyEncryptionEncryptorImpl struct {
 	rsaPublicKey *rsa.PublicKey
 	rsaPublicKid string
-	rsaAlg jose.Alg
-	cekAlg jose.Alg
+	rsaAlg       jose.Alg
 	randomSource io.Reader
 }
 
@@ -65,24 +65,26 @@ func (e *JweRsaKeyEncryptionEncryptorImpl) Encrypt(plaintext []byte, oaepHash cr
 
 	// encrypt the plaintext using the cek
 	var blockCipher cipher.Block
-	blockCipher, err = aes.NewCipher(cek); if err != nil {
+	blockCipher, err = aes.NewCipher(cek)
+	if err != nil {
 		return "", fmt.Errorf("error creating AES cipher: %w", err)
 	}
 	var aesGCM cipher.AEAD
-	aesGCM, err = cipher.NewGCM(blockCipher); if err != nil {
+	aesGCM, err = cipher.NewGCM(blockCipher)
+	if err != nil {
 		return "", fmt.Errorf("error creating GCM: %w", err)
 	}
 	var aesGCMCryptor AeadEncryptionKey
 	if aesGCMCryptor, err = NewAesGcmCryptor(aesGCM, e.randomSource, "", cekAlgorithm, []jose.KeyOps{jose.KeyOpsEncrypt}); err != nil {
 		return "", fmt.Errorf("error creating AES GCM Cryptor: %w", err)
 	}
-	ciphertext, tag, err := aesGCMCryptor.Seal(jose.KeyOpsEncrypt, iv, plaintext, aad);
+	ciphertext, tag, err := aesGCMCryptor.Seal(jose.KeyOpsEncrypt, iv, plaintext, aad)
 	if err != nil {
 		return "", fmt.Errorf("error encrypting the plaintext: %w", err)
 	}
 
 	// create the compact representation of the jwe using the parameters above
-	jweData:= &jose.JweRfc7516Compact{
+	jweData := &jose.JweRfc7516Compact{
 		ProtectedHeader:      *protectedHeader,
 		EncryptedKey:         encryptedCEK,
 		InitializationVector: iv,
@@ -119,7 +121,7 @@ func (e *JweRsaKeyEncryptionEncryptorImpl) makeJweProtectedHeader() *jose.JwePro
 //   - the encryption of the data performed by the CEK with AES GCM algorithm, for the IV
 func NewJweRsaKeyEncryptionEncryptorImpl(rsaPublicKeyRecipient jose.Jwk, randomSource io.Reader) (*JweRsaKeyEncryptionEncryptorImpl, error) {
 	// check if required operation is supported
-	if !isSubset(rsaPublicKeyRecipient.Ops(), []jose.KeyOps{jose.KeyOpsEncrypt})  {
+	if !isSubset(rsaPublicKeyRecipient.Ops(), []jose.KeyOps{jose.KeyOpsEncrypt}) {
 		return nil, ErrInvalidOperations
 	}
 	// create the asymmetric public key structure from the recipient
@@ -135,7 +137,7 @@ func NewJweRsaKeyEncryptionEncryptorImpl(rsaPublicKeyRecipient jose.Jwk, randomS
 
 	return &JweRsaKeyEncryptionEncryptorImpl{
 		rsaPublicKey: rsaKek,
-		rsaAlg: rsaPublicKeyRecipient.Alg(),
+		rsaAlg:       rsaPublicKeyRecipient.Alg(),
 		rsaPublicKid: rsaPublicKeyRecipient.Kid(),
 		randomSource: randomSource,
 	}, nil

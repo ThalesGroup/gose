@@ -7,8 +7,9 @@ import (
 	"log"
 	"testing"
 
-	"github.com/eclipse-keypont/gose/jose"
 	"github.com/stretchr/testify/mock"
+
+	"github.com/eclipse-keypont/gose/jose"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -74,7 +75,7 @@ func TestJweDirectEncryptionEncryptorImpl_Encrypt(t *testing.T) {
 	keyMock.AssertExpectations(t)
 }
 
-func TestExampleJweDirectEncryptionEncryptorImpl_EncryptDecrypt(t *testing.T) {
+func TestExampleJweDirectEncryptionEncryptorImpl_EncryptDecrypt(_ *testing.T) {
 	// First create a key which we use to encrypt and authenticate data.
 	generator := &AuthenticatedEncryptionKeyGenerator{}
 	cryptor, _, err := generator.Generate(jose.AlgA256GCM, []jose.KeyOps{jose.KeyOpsEncrypt, jose.KeyOpsDecrypt})

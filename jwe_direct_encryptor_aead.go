@@ -43,6 +43,7 @@ func (encryptor *JweDirectEncryptorAead) Encrypt(plaintext, aad []byte) (string,
 		}
 	}
 
+	// This encryptor intentionally implements the legacy (non-RFC7516-compliant) JWE format.
 	jwe := &jose.Jwe{
 		Header: jose.JweHeader{
 			JwsHeader: jose.JwsHeader{

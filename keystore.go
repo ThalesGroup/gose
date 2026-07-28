@@ -13,13 +13,13 @@ import (
 	"github.com/eclipse-keypont/gose/jose"
 )
 
-//TrustKeyStoreImpl implements the Trust Store API
+// TrustKeyStoreImpl implements the Trust Store API
 type TrustKeyStoreImpl struct {
 	keys map[string]map[string]jose.Jwk
 	mtx  sync.Mutex
 }
 
-//Add add an issuer and JWK to the truststore
+// Add add an issuer and JWK to the truststore
 func (store *TrustKeyStoreImpl) Add(issuer string, jwk jose.Jwk) error {
 	if jwk.Kid() == "" {
 		// We want a Key ID and we want it now!
@@ -37,7 +37,7 @@ func (store *TrustKeyStoreImpl) Add(issuer string, jwk jose.Jwk) error {
 	return nil
 }
 
-//Remove remove JWK for issuer and jwk id
+// Remove remove JWK for issuer and jwk id
 func (store *TrustKeyStoreImpl) Remove(issuer, kid string) bool {
 	store.mtx.Lock()
 	defer store.mtx.Unlock()
@@ -48,7 +48,7 @@ func (store *TrustKeyStoreImpl) Remove(issuer, kid string) bool {
 	return true
 }
 
-//Get get verification jwk for issuer and jwk id
+// Get get verification jwk for issuer and jwk id
 func (store *TrustKeyStoreImpl) Get(_ context.Context, issuer, kid string) (vk VerificationKey, err error) {
 	store.mtx.Lock()
 	defer store.mtx.Unlock()
@@ -63,7 +63,7 @@ func (store *TrustKeyStoreImpl) Get(_ context.Context, issuer, kid string) (vk V
 	return nil, ErrUnknownKey
 }
 
-//NewTrustKeyStore loads truststore for map of jose.JWK
+// NewTrustKeyStore loads truststore for map of jose.JWK
 func NewTrustKeyStore(rootData map[string]jose.Jwk) (store *TrustKeyStoreImpl, err error) {
 	tmp := TrustKeyStoreImpl{}
 	tmp.keys = make(map[string]map[string]jose.Jwk)
@@ -76,12 +76,12 @@ func NewTrustKeyStore(rootData map[string]jose.Jwk) (store *TrustKeyStoreImpl, e
 	return
 }
 
-//NewTrustKeyStoreFromFile loads truststore for a
+// NewTrustKeyStoreFromFile loads truststore for a
 func NewTrustKeyStoreFromFile(root string) (store *TrustKeyStoreImpl, err error) {
 	tmp := TrustKeyStoreImpl{}
 	tmp.keys = make(map[string]map[string]jose.Jwk)
 	var entries map[string]json.RawMessage
-	rootData, err := os.ReadFile(root)
+	rootData, err := os.ReadFile(root) // #nosec G304 -- file path is a caller-supplied argument to this public API
 	if err != nil {
 		return nil, err
 	}

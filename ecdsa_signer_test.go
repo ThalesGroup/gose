@@ -12,9 +12,10 @@ import (
 	"encoding/pem"
 	"testing"
 
-	"github.com/eclipse-keypont/gose/jose"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/eclipse-keypont/gose/jose"
 )
 
 var curves = []elliptic.Curve{elliptic.P256(), elliptic.P384(), elliptic.P521()}

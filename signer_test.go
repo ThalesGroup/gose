@@ -11,9 +11,10 @@ import (
 
 	"crypto"
 
-	"github.com/eclipse-keypont/gose/jose"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+
+	"github.com/eclipse-keypont/gose/jose"
 )
 
 type MockedJwk struct {

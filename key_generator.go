@@ -54,11 +54,11 @@ func generateRsaKey(alg jose.Alg, bitLen int, operations []jose.KeyOps) (jose.Jw
 	return jwk, privateKey, nil
 }
 
-//RsaSigningKeyGenerator handles generating a RSA signing key
+// RsaSigningKeyGenerator handles generating a RSA signing key
 type RsaSigningKeyGenerator struct {
 }
 
-//Generate an RSA key using a given algorithm, length, and scope to certain jwk operations.
+// Generate an RSA key using a given algorithm, length, and scope to certain jwk operations.
 func (generator *RsaSigningKeyGenerator) Generate(alg jose.Alg, bitLen int, operations []jose.KeyOps) (SigningKey, error) {
 	/* Generate an RSA signing jwk. */
 	if _, ok := rsaSigningAlgs[alg]; !ok {
@@ -71,11 +71,11 @@ func (generator *RsaSigningKeyGenerator) Generate(alg jose.Alg, bitLen int, oper
 	return NewSigningKey(jwk, operations)
 }
 
-//ECDSASigningKeyGenerator handles generating an ECDSA signing key
+// ECDSASigningKeyGenerator handles generating an ECDSA signing key
 type ECDSASigningKeyGenerator struct {
 }
 
-//Generate an ECDSA key using a given algorithm, and scoped to certain jwk operations.
+// Generate an ECDSA key using a given algorithm, and scoped to certain jwk operations.
 func (g *ECDSASigningKeyGenerator) Generate(alg jose.Alg, operations []jose.KeyOps) (SigningKey, error) {
 
 	curve, ok := ecdsAlgs[alg]
@@ -122,11 +122,11 @@ func (g *AuthenticatedEncryptionKeyGenerator) Generate(alg jose.Alg, operations 
 	return cryptor, jwk, nil
 }
 
-//RsaKeyDecryptionKeyGenerator handles generating a RSA encryption keys
+// RsaKeyDecryptionKeyGenerator handles generating a RSA encryption keys
 type RsaKeyDecryptionKeyGenerator struct {
 }
 
-//Generate an RSA key using a given algorithm, length, and scope to certain jwk operations.
+// Generate an RSA key using a given algorithm, length, and scope to certain jwk operations.
 func (generator *RsaKeyDecryptionKeyGenerator) Generate(alg jose.Alg, bitLen int, operations []jose.KeyOps) (AsymmetricDecryptionKey, error) {
 	/* Generate an RSA encryption jwk. */
 	if _, ok := rsaEncryptionAlgs[alg]; !ok {

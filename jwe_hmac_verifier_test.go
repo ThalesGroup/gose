@@ -4,4 +4,3 @@
 package gose
 
 // JweHmacVerifierImpl implements the JWE Verification API
-

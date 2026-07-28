@@ -17,8 +17,8 @@ import (
 
 // RsaPrivateKeyImpl provides software based signing and decryption capabilities for use during JWT and JWE processing.
 type RsaPrivateKeyImpl struct {
-	jwk   jose.Jwk
-	key   *rsa.PrivateKey
+	jwk jose.Jwk
+	key *rsa.PrivateKey
 }
 
 // Key returns the underlying crypto.Signer implementation.
@@ -26,33 +26,33 @@ func (rsaKey *RsaPrivateKeyImpl) Key() crypto.Signer {
 	return rsaKey.key
 }
 
-//Operations returns the allowed operations for the SigningKey
+// Operations returns the allowed operations for the SigningKey
 func (rsaKey *RsaPrivateKeyImpl) Operations() []jose.KeyOps {
 	return rsaKey.jwk.Ops()
 }
 
-//Kid returns the jwk id
+// Kid returns the jwk id
 func (rsaKey *RsaPrivateKeyImpl) Kid() string {
 	/* JIT jwk load. */
 	return rsaKey.jwk.Kid()
 }
 
-//Jwk returns the JWK
+// Jwk returns the JWK
 func (rsaKey *RsaPrivateKeyImpl) Jwk() (jose.Jwk, error) {
 	return rsaKey.jwk, nil
 }
 
-//Algorithm returns the Algorithm
+// Algorithm returns the Algorithm
 func (rsaKey *RsaPrivateKeyImpl) Algorithm() jose.Alg {
 	return rsaKey.jwk.Alg()
 }
 
-//Marshal marshal the key to a JWK string, or error
+// Marshal marshal the key to a JWK string, or error
 func (rsaKey *RsaPrivateKeyImpl) Marshal() (string, error) {
 	return JwkToString(rsaKey.jwk)
 }
 
-//MarshalPem marshal the key to a PEM string, or error
+// MarshalPem marshal the key to a PEM string, or error
 func (rsaKey *RsaPrivateKeyImpl) MarshalPem() (string, error) {
 	var pemType string
 	var derEncoded []byte
@@ -69,7 +69,7 @@ func (rsaKey *RsaPrivateKeyImpl) MarshalPem() (string, error) {
 	return output.String(), nil
 }
 
-//Sign perform signing operations on data, or error
+// Sign perform signing operations on data, or error
 func (rsaKey *RsaPrivateKeyImpl) Sign(requested jose.KeyOps, data []byte) ([]byte, error) {
 	/* Verify the operation being requested is supported by the jwk. */
 	ops := intersection(validSignerOps, rsaKey.jwk.Ops())
@@ -87,7 +87,7 @@ func (rsaKey *RsaPrivateKeyImpl) Sign(requested jose.KeyOps, data []byte) ([]byt
 	return rsaKey.key.Sign(rand.Reader, digest, opts)
 }
 
-//Certificates of signing key
+// Certificates of signing key
 func (rsaKey *RsaPrivateKeyImpl) Certificates() []*x509.Certificate {
 	return rsaKey.jwk.X5C()
 }
@@ -113,12 +113,12 @@ func (rsaKey *RsaPrivateKeyImpl) publicKey() (*RsaPublicKeyImpl, error) {
 	}, nil
 }
 
-//Verifier verification key for signing jwk
+// Verifier verification key for signing jwk
 func (rsaKey *RsaPrivateKeyImpl) Verifier() (VerificationKey, error) {
 	return rsaKey.publicKey()
 }
 
-//Encryptor get encryption key
+// Encryptor get encryption key
 func (rsaKey *RsaPrivateKeyImpl) Encryptor() (AsymmetricEncryptionKey, error) {
 	return rsaKey.publicKey()
 }
@@ -138,4 +138,3 @@ func NewRsaDecryptionKey(jwk jose.Jwk) (*RsaPrivateKeyImpl, error) {
 		key: rsaKey,
 	}, nil
 }
-

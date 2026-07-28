@@ -240,15 +240,15 @@ func TestJwt_Unmarshal(t *testing.T) {
 				require.NoError(t, err)
 				assert.Equal(t, test.Expected.Header.Alg, jwt.Header.Alg)
 				assert.Equal(t, test.Expected.Header.Typ, jwt.Header.Typ)
-				assert.Equal(t, test.Expected.Claims.AutomaticJwtClaims.IssuedAt, jwt.Claims.AutomaticJwtClaims.IssuedAt)
-				assert.Equal(t, test.Expected.Claims.AutomaticJwtClaims.Issuer, jwt.Claims.AutomaticJwtClaims.Issuer)
-				assert.Equal(t, test.Expected.Claims.SettableJwtClaims.Subject, jwt.Claims.SettableJwtClaims.Subject)
-				require.Equal(t, len(test.Expected.Claims.SettableJwtClaims.Audiences.Aud), len(jwt.Claims.SettableJwtClaims.Audiences.Aud))
-				for j := range test.Expected.Claims.SettableJwtClaims.Audiences.Aud {
-					assert.Equal(t, test.Expected.Claims.SettableJwtClaims.Audiences.Aud[j], jwt.Claims.SettableJwtClaims.Audiences.Aud[j])
+				assert.Equal(t, test.Expected.Claims.IssuedAt, jwt.Claims.IssuedAt)
+				assert.Equal(t, test.Expected.Claims.Issuer, jwt.Claims.Issuer)
+				assert.Equal(t, test.Expected.Claims.Subject, jwt.Claims.Subject)
+				require.Equal(t, len(test.Expected.Claims.Audiences.Aud), len(jwt.Claims.Audiences.Aud))
+				for j := range test.Expected.Claims.Audiences.Aud {
+					assert.Equal(t, test.Expected.Claims.Audiences.Aud[j], jwt.Claims.Audiences.Aud[j])
 				}
-				assert.Equal(t, test.Expected.Claims.SettableJwtClaims.Expiration, jwt.Claims.SettableJwtClaims.Expiration)
-				assert.Equal(t, test.Expected.Claims.SettableJwtClaims.NotBefore, jwt.Claims.SettableJwtClaims.NotBefore)
+				assert.Equal(t, test.Expected.Claims.Expiration, jwt.Claims.Expiration)
+				assert.Equal(t, test.Expected.Claims.NotBefore, jwt.Claims.NotBefore)
 
 				assert.Equal(t, len(test.Expected.Claims.UntypedClaims), len(jwt.Claims.UntypedClaims))
 				for k, expected := range test.Expected.Claims.UntypedClaims {
@@ -293,7 +293,7 @@ func TestJwt_Roundtrip(t *testing.T) {
 	require.NoError(t, err)
 	marhsalled := MarshalJws(body, expected.Signature)
 	var unmarshalled Jwt
-	_, err = unmarshalled.Unmarshal(string(marhsalled))
+	_, err = unmarshalled.Unmarshal(marhsalled)
 	require.NoError(t, err)
 
 	// Assert

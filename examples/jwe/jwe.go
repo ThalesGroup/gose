@@ -1,13 +1,15 @@
 // SPDX-FileCopyrightText: 2026 Thales Group and the gose Contributors
 // SPDX-License-Identifier: MIT
 
+// Package main demonstrates encrypting and decrypting a compact JWE using gose.
 package main
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/eclipse-keypont/gose"
 	"github.com/eclipse-keypont/gose/jose"
-	"os"
 )
 
 var (

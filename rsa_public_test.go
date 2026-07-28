@@ -13,9 +13,10 @@ import (
 	"encoding/pem"
 	"testing"
 
-	"github.com/eclipse-keypont/gose/jose"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/eclipse-keypont/gose/jose"
 )
 
 func TestNewRsaPublicKeyImpl(t *testing.T) {
@@ -59,6 +60,7 @@ func TestNewRsaPublicMarshalSucceeds(t *testing.T) {
 	require.NotEmpty(t, str)
 	buf := bytes.NewReader([]byte(str))
 	jwkOut, err := LoadJwk(buf, nil)
+	require.NoError(t, err)
 	require.Equal(t, jwk.Kid(), jwkOut.Kid())
 	require.Equal(t, jwk.Kty(), jwkOut.Kty())
 	require.Equal(t, jwk.Alg(), jwkOut.Alg())

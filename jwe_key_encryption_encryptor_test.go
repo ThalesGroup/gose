@@ -9,12 +9,14 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
-	"github.com/eclipse-keypont/gose/jose"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"log"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/eclipse-keypont/gose/jose"
 )
 
 const jwkRSAOAEPEncryptionRaw = `
@@ -36,7 +38,6 @@ func generateEncryptor(t *testing.T) *JweRsaKeyEncryptionEncryptorImpl {
 	buf := bytes.NewReader([]byte(jwkRSAOAEPEncryptionRaw))
 	jwkRSAOAEPEncryption, err := LoadJwk(buf, nil)
 	require.NoError(t, err)
-
 
 	rsaOAEPEncryptor, err := NewJweRsaKeyEncryptionEncryptorImpl(jwkRSAOAEPEncryption, rand.Reader)
 	require.NoError(t, err)
@@ -65,7 +66,6 @@ func TestNewJweRsaKeyEncryptionEncryptorImpl_InvalidJwk(t *testing.T) {
 	assert.Equal(t, ErrInvalidKeyType, err)
 }
 
-
 func TestRSAOAEPJWEEncrypt(t *testing.T) {
 	rsaOAEPEncryptor := generateEncryptor(t)
 	jwe, err := rsaOAEPEncryptor.Encrypt([]byte("plaintext"), crypto.SHA256)
@@ -73,7 +73,7 @@ func TestRSAOAEPJWEEncrypt(t *testing.T) {
 	require.NotEmpty(t, jwe)
 
 	// verify structure
-	splits := strings.Split(jwe,  ".")
+	splits := strings.Split(jwe, ".")
 	require.Equal(t, 5, len(splits))
 
 	// protected header

@@ -16,6 +16,7 @@ type HmacShaCryptor struct {
 	hash hash.Hash
 }
 
+// Kid returns the identity of the key.
 func (h HmacShaCryptor) Kid() string {
 	return h.kid
 }

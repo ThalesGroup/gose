@@ -5,12 +5,12 @@ package gose
 
 import (
 	"crypto/rand"
-	"github.com/eclipse-keypont/gose/jose"
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
+
+	"github.com/eclipse-keypont/gose/jose"
 )
-
-
 
 func TestAesCbcCryptor(t *testing.T) {
 	var err error
@@ -58,18 +58,17 @@ func TestAesCbcCryptor(t *testing.T) {
 	})
 }
 
-
-func testKid(t *testing.T, expectedKid string, cryptor BlockEncryptionKey){
+func testKid(t *testing.T, expectedKid string, cryptor BlockEncryptionKey) {
 	kid := cryptor.Kid()
 	require.Equal(t, expectedKid, kid)
 }
 
-func testAlgorithm(t *testing.T, expectedAlg jose.Alg, cryptor BlockEncryptionKey){
+func testAlgorithm(t *testing.T, expectedAlg jose.Alg, cryptor BlockEncryptionKey) {
 	alg := cryptor.Algorithm()
 	require.Equal(t, expectedAlg, alg)
 }
 
-func testSeal(t *testing.T, cryptor BlockEncryptionKey){
+func testSeal(t *testing.T, cryptor BlockEncryptionKey) {
 	small := []byte("ping")
 	cSmall := cryptor.Seal(small)
 	require.Equal(t, 0, len(cSmall)%16)
@@ -83,7 +82,7 @@ func testSeal(t *testing.T, cryptor BlockEncryptionKey){
 	require.Contains(t, string(cBig), mockExpectedCiphertext)
 }
 
-func testOpen(t *testing.T, cryptor BlockEncryptionKey){
+func testOpen(t *testing.T, cryptor BlockEncryptionKey) {
 	small := []byte("ping")
 	cSmall := cryptor.Open(small)
 	require.Equal(t, 0, len(cSmall)%16)

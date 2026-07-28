@@ -13,11 +13,12 @@ import (
 	"encoding/pem"
 	"log/slog"
 
-	"github.com/eclipse-keypont/gose/jose"
 	"math/big"
+
+	"github.com/eclipse-keypont/gose/jose"
 )
 
-//ECDSAOptions Implements crypto.SignerOpts
+// ECDSAOptions Implements crypto.SignerOpts
 type ECDSAOptions struct {
 	Hash         crypto.Hash
 	keySizeBytes int
@@ -25,21 +26,21 @@ type ECDSAOptions struct {
 	curve        elliptic.Curve
 }
 
-//HashFunc returns the crypto.Hash
+// HashFunc returns the crypto.Hash
 func (opts *ECDSAOptions) HashFunc() crypto.Hash {
 	return opts.Hash
 }
 
 //-------------------
 
-//ECDSASigningKey implements ECDSA crypto.SigningKey
+// ECDSASigningKey implements ECDSA crypto.SigningKey
 type ECDSASigningKey struct {
 	jwk   jose.Jwk
 	key   crypto.Signer
 	certs []*x509.Certificate
 }
 
-//Algorithm returns the jose.Alg for this key
+// Algorithm returns the jose.Alg for this key
 func (signer ECDSASigningKey) Algorithm() jose.Alg {
 	return signer.jwk.Alg()
 }
@@ -90,7 +91,7 @@ func (signer *ECDSASigningKey) Sign(requested jose.KeyOps, data []byte) (signatu
 		// them with zeros on the left to make sure the sizes work out. Both arrays
 		// must be keyBytes long, and the output must be 2*keyBytes long.
 		rBytes := r.Bytes()
-		rBytesPadded := make([]byte, keyBytes)
+		rBytesPadded := make([]byte, keyBytes, keyBytes*2)
 		copy(rBytesPadded[keyBytes-len(rBytes):], rBytes)
 
 		sBytes := s.Bytes()
@@ -112,20 +113,20 @@ func (signer *ECDSASigningKey) Verifier() (VerificationKey, error) {
 	return NewVerificationKey(publicJwk)
 }
 
-//Kid returns the kid string value
+// Kid returns the kid string value
 func (signer *ECDSASigningKey) Kid() string {
 	/* JIT jwk load. */
 	return signer.jwk.Kid()
 }
 
-//Marshal marshals the key into a compact JWK representation or error
+// Marshal marshals the key into a compact JWK representation or error
 func (signer *ECDSASigningKey) Marshal() (string, error) {
 	return JwkToString(signer.jwk)
 }
 
 const ecdsaPrivateKeyPerType = "ECDSA PRIVATE KEY"
 
-//MarshalPem marshals the key into a PEM string or error
+// MarshalPem marshals the key into a PEM string or error
 func (signer *ECDSASigningKey) MarshalPem() (p string, err error) {
 	pemType := ecdsaPrivateKeyPerType
 	var derEncoded []byte
@@ -145,12 +146,12 @@ func (signer *ECDSASigningKey) MarshalPem() (p string, err error) {
 
 }
 
-//Certificates returns certificate chain of this key
+// Certificates returns certificate chain of this key
 func (signer *ECDSASigningKey) Certificates() []*x509.Certificate {
 	return signer.certs
 }
 
-//Jwk returns key as a jose.JWK type, or errors
+// Jwk returns key as a jose.JWK type, or errors
 func (signer *ECDSASigningKey) Jwk() (jose.Jwk, error) {
 	/* Return a copy of our JWK. */
 	return JwkFromPrivateKey(signer.key, signer.jwk.Ops(), signer.certs)

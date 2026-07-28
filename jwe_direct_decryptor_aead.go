@@ -15,6 +15,7 @@ type JweDirectDecryptorAeadImpl struct {
 // Decrypt and verify the given JWE returning both the plaintext and AAD.
 func (decryptor *JweDirectDecryptorAeadImpl) Decrypt(jwe string) (plaintext, aad []byte, err error) {
 
+	// This decryptor intentionally implements the legacy (non-RFC7516-compliant) JWE format.
 	var jweStruct jose.Jwe
 	if err = jweStruct.Unmarshal(jwe); err != nil {
 		return

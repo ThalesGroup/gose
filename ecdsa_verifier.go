@@ -17,7 +17,7 @@ import (
 
 // ECVerificationKeyImpl implements the ECDSA Verification Logic
 type ECVerificationKeyImpl struct {
-	key   ecdsa.PublicKey
+	key ecdsa.PublicKey
 	jwk jose.Jwk
 }
 
@@ -54,7 +54,7 @@ func (verifier *ECVerificationKeyImpl) Verify(operation jose.KeyOps, data []byte
 		return false
 	}
 	hasher := opts.HashFunc().New()
-	if _, err := hasher.Write([]byte(data)); err != nil {
+	if _, err := hasher.Write(data); err != nil {
 		slog.Error("hash write error", "err", err)
 		return false
 	}
@@ -96,7 +96,7 @@ func (verifier *ECVerificationKeyImpl) MarshalPem() (string, error) {
 	return output.String(), nil
 }
 
-//Kid returns the key's id
+// Kid returns the key's id
 func (verifier *ECVerificationKeyImpl) Kid() string {
 	return verifier.jwk.Kid()
 }

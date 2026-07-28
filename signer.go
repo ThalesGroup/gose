@@ -17,7 +17,7 @@ import (
 	"github.com/eclipse-keypont/gose/jose"
 )
 
-//SigningKeyImpl implements a RSA signing key
+// SigningKeyImpl implements a RSA signing key
 type SigningKeyImpl struct {
 	jwk   jose.Jwk
 	key   crypto.Signer
@@ -52,7 +52,7 @@ var validDecryptionOps = []jose.KeyOps{
 
 const rsaPrivateKeyPemType = "RSA PRIVATE KEY"
 
-//NewSigningKey returns a SignignKey for a jose.JWK with required jwk operations
+// NewSigningKey returns a SignignKey for a jose.JWK with required jwk operations
 func NewSigningKey(jwk jose.Jwk, required []jose.KeyOps) (SigningKey, error) {
 	/* Check jwk can be used to sign */
 	ops := intersection(validSignerOps, jwk.Ops())
@@ -75,38 +75,38 @@ func NewSigningKey(jwk jose.Jwk, required []jose.KeyOps) (SigningKey, error) {
 	}
 }
 
-//Key returns the crypto.Signer
+// Key returns the crypto.Signer
 func (signer *SigningKeyImpl) Key() crypto.Signer {
 	return signer.key
 }
 
-//Operations returns the allowed operations for the SigningKey
+// Operations returns the allowed operations for the SigningKey
 func (signer *SigningKeyImpl) Operations() []jose.KeyOps {
 	return signer.jwk.Ops()
 }
 
-//Kid returns the jwk id
+// Kid returns the jwk id
 func (signer *SigningKeyImpl) Kid() string {
 	/* JIT jwk load. */
 	return signer.jwk.Kid()
 }
 
-//Jwk returns the JWK
+// Jwk returns the JWK
 func (signer *SigningKeyImpl) Jwk() (jose.Jwk, error) {
 	return signer.jwk, nil
 }
 
-//Algorithm returns the Algorithm
+// Algorithm returns the Algorithm
 func (signer *SigningKeyImpl) Algorithm() jose.Alg {
 	return signer.jwk.Alg()
 }
 
-//Marshal marshal the key to a JWK string, or error
+// Marshal marshal the key to a JWK string, or error
 func (signer *SigningKeyImpl) Marshal() (string, error) {
 	return JwkToString(signer.jwk)
 }
 
-//MarshalPem marshal the key to a PEM string, or error
+// MarshalPem marshal the key to a PEM string, or error
 func (signer *SigningKeyImpl) MarshalPem() (string, error) {
 	var pemType string
 	var derEncoded []byte
@@ -128,7 +128,7 @@ func (signer *SigningKeyImpl) MarshalPem() (string, error) {
 	return output.String(), nil
 }
 
-//Sign perform signing operations on data, or error
+// Sign perform signing operations on data, or error
 func (signer *SigningKeyImpl) Sign(requested jose.KeyOps, data []byte) ([]byte, error) {
 	/* Verify the operation being requested is supported by the jwk. */
 	ops := intersection(validSignerOps, signer.jwk.Ops())
@@ -146,12 +146,12 @@ func (signer *SigningKeyImpl) Sign(requested jose.KeyOps, data []byte) ([]byte, 
 	return signer.key.Sign(rand.Reader, digest, opts)
 }
 
-//Certificates of signing key
+// Certificates of signing key
 func (signer *SigningKeyImpl) Certificates() []*x509.Certificate {
 	return signer.certs
 }
 
-//Verifier verification key for signing jwk
+// Verifier verification key for signing jwk
 func (signer *SigningKeyImpl) Verifier() (VerificationKey, error) {
 	publicJwk, err := PublicFromPrivate(signer.jwk)
 	if err != nil {

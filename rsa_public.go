@@ -15,7 +15,7 @@ import (
 	"github.com/eclipse-keypont/gose/jose"
 )
 
-//RsaPublicKeyImpl implements RSA verification and encryption APIs
+// RsaPublicKeyImpl implements RSA verification and encryption APIs
 type RsaPublicKeyImpl struct {
 	key rsa.PublicKey
 	jwk jose.Jwk
@@ -31,17 +31,17 @@ var (
 	}
 )
 
-//Kid returns the key's id
+// Kid returns the key's id
 func (k *RsaPublicKeyImpl) Kid() string {
 	return k.jwk.Kid()
 }
 
-//Algorithm returns algorithm
+// Algorithm returns algorithm
 func (k *RsaPublicKeyImpl) Algorithm() jose.Alg {
 	return k.jwk.Alg()
 }
 
-//Jwk returns the public JWK
+// Jwk returns the public JWK
 func (k *RsaPublicKeyImpl) Jwk() (jose.Jwk, error) {
 	jwk, err := JwkFromPublicKey(&k.key, k.jwk.Ops(), k.jwk.X5C())
 	if err != nil {
@@ -51,7 +51,7 @@ func (k *RsaPublicKeyImpl) Jwk() (jose.Jwk, error) {
 	return jwk, nil
 }
 
-//Marshal returns the key marshalled to a JWK string, or error
+// Marshal returns the key marshalled to a JWK string, or error
 func (k *RsaPublicKeyImpl) Marshal() (string, error) {
 	jwk, err := k.Jwk()
 	if err != nil {
@@ -60,7 +60,7 @@ func (k *RsaPublicKeyImpl) Marshal() (string, error) {
 	return JwkToString(jwk)
 }
 
-//MarshalPem returns the key marshalled to a PEM string, or error
+// MarshalPem returns the key marshalled to a PEM string, or error
 func (k *RsaPublicKeyImpl) MarshalPem() (string, error) {
 	derEncoded, err := x509.MarshalPKIXPublicKey(&k.key)
 	if err != nil {
@@ -78,7 +78,7 @@ func (k *RsaPublicKeyImpl) MarshalPem() (string, error) {
 	return output.String(), nil
 }
 
-//Verify data matches signature
+// Verify data matches signature
 func (k *RsaPublicKeyImpl) Verify(operation jose.KeyOps, data []byte, signature []byte) bool {
 	ops := intersection(validVerificationOps, k.jwk.Ops())
 	if !isSubset(ops, []jose.KeyOps{operation}) {
@@ -110,7 +110,7 @@ func (k *RsaPublicKeyImpl) Encrypt(requested jose.KeyOps, hash crypto.Hash, data
 	return rsa.EncryptOAEP(hash.New(), rand.Reader, &k.key, data, nil)
 }
 
-//Certificates for verification key
+// Certificates for verification key
 func (k *RsaPublicKeyImpl) Certificates() []*x509.Certificate {
 	return k.jwk.X5C()
 }

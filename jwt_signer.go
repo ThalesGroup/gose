@@ -8,24 +8,25 @@ import (
 	"log"
 	"time"
 
-	"github.com/eclipse-keypont/gose/jose"
 	"github.com/google/uuid"
+
+	"github.com/eclipse-keypont/gose/jose"
 )
 
 var _ JwtSigner = (*JwtSignerImpl)(nil)
 
-//JwtSignerImpl JWT implementation
+// JwtSignerImpl JWT implementation
 type JwtSignerImpl struct {
 	key    SigningKey
 	issuer string
 }
 
-//Issuer returns issuer of JWT
+// Issuer returns issuer of JWT
 func (signer *JwtSignerImpl) Issuer() string {
 	return signer.issuer
 }
 
-//Sign claims to a JWT string
+// Sign claims to a JWT string
 func (signer *JwtSignerImpl) Sign(claims *jose.SettableJwtClaims, untyped map[string]interface{}) (string, error) {
 	var encodedUntyped jose.UntypedClaims
 	if untyped != nil {
@@ -70,7 +71,7 @@ func (signer *JwtSignerImpl) Sign(claims *jose.SettableJwtClaims, untyped map[st
 	return jose.MarshalJws(toBeSigned, jwt.Signature), nil
 }
 
-//NewJwtSigner returns a JWT Signer for a issuer and jwk
+// NewJwtSigner returns a JWT Signer for a issuer and jwk
 func NewJwtSigner(issuer string, key SigningKey) *JwtSignerImpl {
 	return &JwtSignerImpl{key: key, issuer: issuer}
 }

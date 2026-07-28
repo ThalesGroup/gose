@@ -40,10 +40,10 @@ type SettableJwtClaims struct {
 	NotBefore  int64     `json:"nbf,omitempty"`
 }
 
-//UntypedClaims for non-standard clains
+// UntypedClaims for non-standard clains
 type UntypedClaims map[string]json.RawMessage
 
-//JwtClaims claims for a JWT
+// JwtClaims claims for a JWT
 type JwtClaims struct {
 	AutomaticJwtClaims
 	SettableJwtClaims
@@ -160,14 +160,14 @@ func (c *JwtClaims) MarshalJSON() (dst []byte, err error) {
 	return json.Marshal(inst.Interface())
 }
 
-//Jwt defines a Jave web token
+// Jwt defines a Jave web token
 type Jwt struct {
 	Header    JwsHeader
 	Claims    JwtClaims
 	Signature []byte
 }
 
-//Verify JWT is valid or error
+// Verify JWT is valid or error
 func (jwt *Jwt) Verify() error {
 	if jwt.Header.Typ != JwtType {
 		/* Not a JWT. */
@@ -185,7 +185,7 @@ func (jwt *Jwt) Verify() error {
 	return nil
 }
 
-//MarshalBody representation of the JWT Header and Claims.
+// MarshalBody representation of the JWT Header and Claims.
 func (jwt *Jwt) MarshalBody() (body string, err error) {
 	if err = jwt.Verify(); err != nil {
 		return
@@ -197,7 +197,7 @@ func (jwt *Jwt) MarshalBody() (body string, err error) {
 	return jws.MarshalBody()
 }
 
-//Unmarshal string to JWT body, or error
+// Unmarshal string to JWT body, or error
 func (jwt *Jwt) Unmarshal(src string) (body string, err error) {
 	/* Compact JWT encoding. */
 	/* Default Exp field to maximum in case it is not set. */

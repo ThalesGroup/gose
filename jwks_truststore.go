@@ -32,12 +32,12 @@ type JwksTrustStore struct {
 }
 
 // Add this method is not supported on a JwksTrustStore instance and will always return an error.
-func (store *JwksTrustStore) Add(issuer string, jwk jose.Jwk) error {
+func (store *JwksTrustStore) Add(_ string, _ jose.Jwk) error {
 	return errors.New("read-only trust store")
 }
 
 // Remove this method is not supported on a JwksTrustStore instance and will always return false.
-func (store *JwksTrustStore) Remove(issuer, kid string) bool {
+func (store *JwksTrustStore) Remove(_, _ string) bool {
 	return false
 }
 
@@ -74,14 +74,15 @@ func (store *JwksTrustStore) Get(ctx context.Context, issuer, kid string) (vk Ve
 		var response *http.Response
 		var req *http.Request
 		if req, err = http.NewRequestWithContext(ctx, http.MethodGet, store.url, nil); err != nil {
-			err = fmt.Errorf("error creating request for JWKS from %s: %v", store.url, err)
+			err = fmt.Errorf("error creating request for JWKS from %s: %w", store.url, err)
 			return
 		}
 		response, err = store.client.Do(req)
 		if err != nil {
-			err = fmt.Errorf("error encountered retrieving JWKS from %s: %v", store.url, err)
+			err = fmt.Errorf("error encountered retrieving JWKS from %s: %w", store.url, err)
 			return
 		}
+		defer func() { _ = response.Body.Close() }()
 		if response.StatusCode != http.StatusOK {
 			err = fmt.Errorf("error encountered retrieving JWKS from %s: %d %s", store.url, response.StatusCode, response.Status)
 			return
@@ -96,7 +97,7 @@ func (store *JwksTrustStore) Get(ctx context.Context, issuer, kid string) (vk Ve
 		for _, jwk := range jwks.Keys {
 			vk, err = NewVerificationKey(jwk)
 			if err != nil {
-				err = fmt.Errorf("failed to load verification key from JWK: %v", err)
+				err = fmt.Errorf("failed to load verification key from JWK: %w", err)
 				return
 			}
 			keys = append(keys, vk)
@@ -107,7 +108,6 @@ func (store *JwksTrustStore) Get(ctx context.Context, issuer, kid string) (vk Ve
 		// Try and find key in newly cached keys
 		for _, key := range store.keys {
 			if key.Kid() == kid {
-				vk = key
 				return key, nil
 			}
 		}

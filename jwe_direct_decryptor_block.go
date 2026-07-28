@@ -6,11 +6,13 @@ package gose
 import (
 	"encoding/binary"
 	"fmt"
+
 	"github.com/eclipse-keypont/gose/jose"
 )
 
+// JweDirectDecryptorBlock implements decryption of a compact JWE using direct key agreement with a block cipher.
 type JweDirectDecryptorBlock struct {
-	aesKey  BlockEncryptionKey
+	aesKey      BlockEncryptionKey
 	jweVerifier JweHmacVerifierImpl
 }
 
@@ -26,11 +28,11 @@ func (decryptor *JweDirectDecryptorBlock) Decrypt(marshalledJwe string) (plainte
 	//   validated.
 	var jwe jose.JweRfc7516Compact
 	if err = jwe.Unmarshal(marshalledJwe); err != nil {
-		return nil, nil, fmt.Errorf("error unmarshalling the jwe: %v", err)
+		return nil, nil, fmt.Errorf("error unmarshalling the jwe: %w", err)
 	}
 	// check the algorithm in header
 	if jwe.ProtectedHeader.Alg != decryptor.aesKey.Algorithm() {
-		return nil, nil, fmt.Errorf("error checking the JWE protected header's algorthim. algorithm is '%v' but expected is '%v'", jwe.ProtectedHeader.Alg, decryptor.aesKey.Algorithm())
+		return nil, nil, fmt.Errorf("error checking the JWE protected header's algorithm. algorithm is '%v' but expected is '%v'", jwe.ProtectedHeader.Alg, decryptor.aesKey.Algorithm())
 	}
 	// check the keys for direct encryption
 	if jwe.ProtectedHeader.Kid != decryptor.aesKey.Kid() {
@@ -38,11 +40,11 @@ func (decryptor *JweDirectDecryptorBlock) Decrypt(marshalledJwe string) (plainte
 	}
 
 	// INTEGRITY CHECK before decryption
-	integrity, err := decryptor.jweVerifier.VerifyCompact(jwe);
+	integrity, err := decryptor.jweVerifier.VerifyCompact(jwe)
 	if err != nil {
 		return nil, nil, err
 	}
-	if ! integrity {
+	if !integrity {
 		return nil, nil, fmt.Errorf("error corrupted jwe : integrity check failed")
 	}
 
@@ -78,7 +80,7 @@ func (decryptor *JweDirectDecryptorBlock) Decrypt(marshalledJwe string) (plainte
 func NewJweDirectDecryptorBlock(aesKey BlockEncryptionKey, hmacKey HmacKey) *JweDirectDecryptorBlock {
 	// Create map out of our list of keys. The map is keyed in Kid.
 	decryptor := &JweDirectDecryptorBlock{
-		aesKey:  aesKey,
+		aesKey:      aesKey,
 		jweVerifier: JweHmacVerifierImpl{hmacKey: hmacKey},
 	}
 	return decryptor

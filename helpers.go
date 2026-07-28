@@ -279,11 +279,11 @@ func LoadJwk(reader io.ReadSeeker, required []jose.KeyOps) (jwk jose.Jwk, err er
 // LoadJwkFromFile loads file as JWK or error
 func LoadJwkFromFile(file string, required []jose.KeyOps) (jose.Jwk, error) {
 	/* Load jwk from file. */
-	fd, err := os.Open(file)
+	fd, err := os.Open(file) // #nosec G304 -- file path is a caller-supplied argument to this public API
 	if err != nil {
 		return nil, ErrInvalidSigningKeyURL
 	}
-	defer fd.Close()
+	defer func() { _ = fd.Close() }()
 	return LoadJwk(fd, required)
 }
 
@@ -368,14 +368,6 @@ func JwkToString(jwk jose.Jwk) (string, error) {
 		return "", err
 	}
 	return string(b), nil
-}
-
-func base64EncodeUInt32(val uint32) string {
-	var buf bytes.Buffer
-	if err := binary.Write(&buf, binary.BigEndian, &val); err != nil {
-		slog.Error("binary write error", "err", err)
-	}
-	return base64.RawURLEncoding.EncodeToString(buf.Bytes())
 }
 
 func uintToBytesBigEndian(val uint64) []byte {

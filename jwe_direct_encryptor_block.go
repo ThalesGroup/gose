@@ -5,6 +5,7 @@ package gose
 
 import (
 	"fmt"
+
 	"github.com/eclipse-keypont/gose/jose"
 )
 
@@ -17,12 +18,11 @@ var (
 	}
 )
 
-// JweDirectEncryptorBlock
-// implementation of JweDirectEncryptionEncryptor interface for BlockMode which is more efficient than Block for bulk
-// operations
+// JweDirectEncryptorBlock is an implementation of the JweDirectEncryptionEncryptor interface for BlockMode which is
+// more efficient than Block for bulk operations.
 type JweDirectEncryptorBlock struct {
-	aesKey  BlockEncryptionKey
-	iv      []byte
+	aesKey      BlockEncryptionKey
+	iv          []byte
 	jweVerifier JweHmacVerifierImpl
 }
 
@@ -40,9 +40,10 @@ func (encryptor *JweDirectEncryptorBlock) makeJweProtectedHeader() *jose.JweProt
 }
 
 // Encrypt encrypts the given plaintext and returns a compact JWE.
-//   WARNING aad is useless here : according to RFC7516, the AAD is computed from the JWE's private header
-//   It is just here to statisfy the interface implementation
-func (encryptor *JweDirectEncryptorBlock) Encrypt(plaintext, aad []byte) (string, error) {
+//
+//	WARNING aad is useless here : according to RFC7516, the AAD is computed from the JWE's private header
+//	It is just here to statisfy the interface implementation
+func (encryptor *JweDirectEncryptorBlock) Encrypt(plaintext, _ []byte) (string, error) {
 	// The following steps respect the RFC7516 Appendix B for AES CBC and HMAC encryption instructions :
 	// https://datatracker.ietf.org/doc/html/rfc7516#appendix-B
 	var err error
@@ -58,8 +59,9 @@ func (encryptor *JweDirectEncryptorBlock) Encrypt(plaintext, aad []byte) (string
 		B: uintToBytesBigEndian(uint64(len(plaintext))),
 	}
 	// AAD = ASCII(BASE64URL(UTF8(JWE Protected Header)))
+	var aad []byte
 	if aad, err = jweProtectedHeader.MarshalProtectedHeader(); err != nil {
-		return "", fmt.Errorf("error marshalling the JWE Header: %v", err)
+		return "", fmt.Errorf("error marshalling the JWE Header: %w", err)
 	}
 	// Encrypt Plaintext to Create Ciphertext
 	ciphertext := encryptor.aesKey.Seal(plaintext)
@@ -81,8 +83,8 @@ func (encryptor *JweDirectEncryptorBlock) Encrypt(plaintext, aad []byte) (string
 // NewJweDirectEncryptorBlock construct an instance of a JweDirectEncryptorBlock.
 func NewJweDirectEncryptorBlock(aesKey BlockEncryptionKey, hmacKey HmacKey, iv []byte) *JweDirectEncryptorBlock {
 	return &JweDirectEncryptorBlock{
-		aesKey:  aesKey,
-		iv:      iv,
+		aesKey:      aesKey,
+		iv:          iv,
 		jweVerifier: JweHmacVerifierImpl{hmacKey: hmacKey},
 	}
 }

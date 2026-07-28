@@ -7,9 +7,10 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/eclipse-keypont/gose/jose"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/eclipse-keypont/gose/jose"
 )
 
 type generatorFunc func(alg jose.Alg) (SigningKey, error)

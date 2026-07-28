@@ -21,12 +21,13 @@ func computeAL(aad []byte) []byte {
 	return uintToBytesBigEndian(uint64(len(aad)))
 }
 
+// VerifyCompact verifies the authentication tag of a compact JWE (RFC 7516) matches its computed HMAC.
 func (verifier *JweHmacVerifierImpl) VerifyCompact(jwe jose.JweRfc7516Compact) (result bool, err error) {
 	// AAD
 	//  = ASCII(BASE64URL(UTF8(JWE Protected Header)))
 	var aad []byte
 	if aad, err = jwe.ProtectedHeader.MarshalProtectedHeader(); err != nil {
-		return false, fmt.Errorf("error marshalling the JWE Header: %v", err)
+		return false, fmt.Errorf("error marshalling the JWE Header: %w", err)
 	}
 	// Input HMAC computation
 	// Concatenate the AAD, the Initialization Vector, the ciphertext and the AL value.
@@ -37,6 +38,7 @@ func (verifier *JweHmacVerifierImpl) VerifyCompact(jwe jose.JweRfc7516Compact) (
 	return hmac.Equal(outputHmac, jwe.AuthenticationTag), nil
 }
 
+// ComputeHash computes the HMAC authentication tag for the given AAD, initialization vector, and ciphertext.
 func (verifier *JweHmacVerifierImpl) ComputeHash(aad []byte, iv []byte, ciphertext []byte) []byte {
 	// Encrypt Plaintext to Create Ciphertext
 	// Input HMAC computation

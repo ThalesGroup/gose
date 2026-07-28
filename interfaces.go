@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Thales Group and the gose Contributors
 // SPDX-License-Identifier: MIT
 
+// Package gose implements JOSE (JWT, JWK, JWS, JWE, JWKS) primitives and helpers for Go.
 package gose
 
 import (
@@ -12,7 +13,7 @@ import (
 	"github.com/eclipse-keypont/gose/jose"
 )
 
-//InvalidFormat is an interface for handling invalid format errors
+// InvalidFormat is an interface for handling invalid format errors
 type InvalidFormat struct {
 	what string
 }
@@ -114,6 +115,7 @@ type BlockEncryptionKey interface {
 	Open(ciphertext []byte) []byte
 }
 
+// HmacKey implements keyed-hash message authentication code operations.
 type HmacKey interface {
 	Key
 	// Hash method gets bytes as input and sum it all to return a hashed result in a 32 bytes array
@@ -147,7 +149,7 @@ type AsymmetricDecryptionKeyStore interface {
 	Get(kid string) (k AsymmetricDecryptionKey, err error)
 }
 
-// JweEncryptor implements encryption of arbitary plaintext into a compact JWE as defined by https://tools.ietf.org/html/rfc7516.
+// JweEncryptor implements encryption of arbitrary plaintext into a compact JWE as defined by https://tools.ietf.org/html/rfc7516.
 type JweEncryptor interface {
 	Encrypt(plaintext, aad []byte) (string, error)
 }
@@ -157,6 +159,7 @@ type JweDecryptor interface {
 	Decrypt(jwe string) (plaintext, aad []byte, err error)
 }
 
+// JweHmacVerifier implements HMAC-based authentication tag computation and verification for a compact JWE.
 type JweHmacVerifier interface {
 	// ComputeHash computes the authentication Tag for of a Jwe by hashing the concatenated values in argument
 	//  aad is the protected header of the JWE encoded in b64
@@ -168,5 +171,5 @@ type JweHmacVerifier interface {
 	// VerifyCompact a compact jwe (rfc 7516) in input and computes its authentication TAG with a hmac operation with
 	// the authentication TAG in the JWE.
 	// Returns false if the integrity check fails, i.e the tags are different
-	VerifyCompact(jwe jose.JweRfc7516Compact,) (result bool, err error)
+	VerifyCompact(jwe jose.JweRfc7516Compact) (result bool, err error)
 }

@@ -7,8 +7,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/eclipse-keypont/gose/jose"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/eclipse-keypont/gose/jose"
 )
 
 func BenchmarkNewTrustKeyStore(b *testing.B) {
@@ -164,6 +165,5 @@ func TestGetFail(t *testing.T) {
 
 	key, err := store.Get(context.Background(), "unknown", "98765")
 	assert.Nil(t, key)
-	assert.Nil(t, key)
-
+	assert.Equal(t, ErrUnknownKey, err)
 }

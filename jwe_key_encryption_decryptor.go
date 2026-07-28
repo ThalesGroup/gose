@@ -8,8 +8,9 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"fmt"
-	"github.com/eclipse-keypont/gose/jose"
 	"slices"
+
+	"github.com/eclipse-keypont/gose/jose"
 )
 
 var supportedEncryptionAlgs = []jose.Enc{jose.EncA256GCM, jose.EncA128GCM, jose.EncA192GCM}
@@ -36,7 +37,7 @@ func (d *JweRsaKeyEncryptionDecryptorImpl) Decrypt(jweRaw string, oaepHash crypt
 	}
 
 	// check CEK encryption is supported
-	if ! slices.Contains(supportedEncryptionAlgs, jwe.ProtectedHeader.Enc) {
+	if !slices.Contains(supportedEncryptionAlgs, jwe.ProtectedHeader.Enc) {
 		return nil, nil, ErrInvalidEncryption
 	}
 
@@ -71,7 +72,7 @@ func (d *JweRsaKeyEncryptionDecryptorImpl) Decrypt(jweRaw string, oaepHash crypt
 	}
 	// concatenate ciphertext and tag for authenticated decryption
 	// [ciphertext + tag] is the result of the encryption and needs to be provided for decryption
-	ctAndTag := make([]byte, len(jwe.Ciphertext) + len(jwe.AuthenticationTag))
+	ctAndTag := make([]byte, len(jwe.Ciphertext)+len(jwe.AuthenticationTag))
 	copy(ctAndTag[:len(jwe.Ciphertext)], jwe.Ciphertext)
 	copy(ctAndTag[len(jwe.Ciphertext):], jwe.AuthenticationTag)
 	// retrieve aad
@@ -92,4 +93,3 @@ func NewJweRsaKeyEncryptionDecryptorImpl(keystore AsymmetricDecryptionKeyStore) 
 		keystore: keystore,
 	}
 }
-

@@ -7,10 +7,12 @@ import (
 	"bytes"
 	"crypto"
 	"crypto/rand"
-	"github.com/eclipse-keypont/gose/jose"
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
+
+	"github.com/eclipse-keypont/gose/jose"
 )
 
 const (

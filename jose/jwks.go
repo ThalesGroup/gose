@@ -8,12 +8,12 @@ import (
 	"encoding/json"
 )
 
-//Jwks key store
+// Jwks key store
 type Jwks struct {
 	Keys []Jwk `json:"keys"`
 }
 
-//UnmarshalJSON byte slice into key store, or error
+// UnmarshalJSON byte slice into key store, or error
 func (j *Jwks) UnmarshalJSON(data []byte) error {
 	var unmarshalTo struct {
 		Keys []json.RawMessage `json:"keys"`

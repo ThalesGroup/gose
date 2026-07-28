@@ -13,9 +13,10 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/eclipse-keypont/gose/jose"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/eclipse-keypont/gose/jose"
 )
 
 func TestGenerateKidRSA(t *testing.T) {
@@ -122,9 +123,9 @@ func TestAESKeySerializationAndDeserialization(t *testing.T) {
 	require.NoError(t, err)
 
 	var jwk16, jwk24, jwk32 jose.Jwk
-	jwk16, err = JwkFromSymmetric(key8, jose.AlgA128GCM)
+	_, err = JwkFromSymmetric(key8, jose.AlgA128GCM)
 	assert.Error(t, err, ErrInvalidKeyLength)
-	jwk16, err = JwkFromSymmetric(key24, jose.AlgA128GCM)
+	_, err = JwkFromSymmetric(key24, jose.AlgA128GCM)
 	assert.Error(t, err, ErrInvalidKeyLength)
 
 	jwk16, err = JwkFromSymmetric(key16, jose.AlgA128GCM)
@@ -359,8 +360,7 @@ func TestJwkToString(t *testing.T) {
 }
 
 func TestUintToBytesBigEndian(t *testing.T) {
-	var val1 uint64
-	val1 = 42
+	var val1 uint64 = 42
 	be1 := uintToBytesBigEndian(val1)
 	require.NotEmpty(t, be1)
 
@@ -370,7 +370,8 @@ func TestUintToBytesBigEndian(t *testing.T) {
 
 func TestGetALFromAAD(t *testing.T) {
 	aad := make([]byte, 51)
-	_, err := rand.Read(aad); if err != nil {
+	_, err := rand.Read(aad)
+	if err != nil {
 		t.Fatal(err)
 	}
 

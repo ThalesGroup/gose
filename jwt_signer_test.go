@@ -10,10 +10,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/eclipse-keypont/gose/jose"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+
+	"github.com/eclipse-keypont/gose/jose"
 )
 
 func TestNewJwtSigner(t *testing.T) {
@@ -64,6 +65,7 @@ func TestJwtSignerImpl_Sign(t *testing.T) {
 	// MarshalBody verification
 	var recoveredClaims jose.JwtClaims
 	claimsBytes, err := base64.RawURLEncoding.DecodeString(parts[1])
+	require.NoError(t, err)
 	err = json.Unmarshal(claimsBytes, &recoveredClaims)
 	require.NoError(t, err)
 	assert.Equal(t, claims.Audiences, recoveredClaims.Audiences)

@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Thales Group and the gose Contributors
 // SPDX-License-Identifier: MIT
 
+// Package jose implements the data types for JWK, JWS, and JWE as defined by RFC 7515-7517.
 package jose
 
 import (
@@ -34,6 +35,7 @@ type Enc string
 // Zip is a type representing values destined for the `zip` field in a JWE header.
 type Zip string
 
+// Header holds the common JOSE header fields shared by JWS and JWE.
 type Header struct {
 	Alg Alg    `json:"alg"`
 	Jku string `json:"jku,omitempty"`
@@ -86,6 +88,7 @@ const (
 	// Because some KMS like SoftHSMv2 do not implement RSA-OAEP with SHA2 yet, but some others do,
 	// we need to support both of these modes in gose implementation.
 	AlgRSAOAEPSHA1 Alg = "RSA-OAEP"
+	// AlgRSAOAEPSHA2 RSA OAEP Key encryption using SHA2, see AlgRSAOAEPSHA1.
 	AlgRSAOAEPSHA2 Alg = "RSA-OAEP"
 
 	//CrvP256 NIST P-256
@@ -170,17 +173,17 @@ var (
 )
 
 func unmarshalJSONBlob(src []byte, decoder *base64.Encoding) (dst []byte, err error) {
-	len := len(src)
+	srcLen := len(src)
 	// We always want at least 1 character pre and proceeded by a quote.
-	if len < 3 || src[0] != '"' || src[len-1] != '"' {
+	if srcLen < 3 || src[0] != '"' || src[srcLen-1] != '"' {
 		err = ErrBlobEmpty
 		return
 	}
 	// Allocate (possibly over allocate) our dst buffer.
-	dstLen := decoder.DecodedLen(len - 2)
+	dstLen := decoder.DecodedLen(srcLen - 2)
 	tmp := make([]byte, dstLen)
 	var decoded int
-	if decoded, err = decoder.Decode(tmp, src[1:len-1]); err != nil {
+	if decoded, err = decoder.Decode(tmp, src[1:srcLen-1]); err != nil {
 		return
 	}
 	// Only return the exact length buffer
@@ -195,11 +198,11 @@ func marshalJSONBlob(src []byte, encoder *base64.Encoding) (dst []byte, err erro
 		return
 	}
 
-	len := encoder.EncodedLen(len(src)) + 2
-	dst = make([]byte, len)
+	dstLen := encoder.EncodedLen(len(src)) + 2
+	dst = make([]byte, dstLen)
 	dst[0] = '"'
-	dst[len-1] = '"'
-	encoder.Encode(dst[1:len-1], src)
+	dst[dstLen-1] = '"'
+	encoder.Encode(dst[1:dstLen-1], src)
 	return
 }
 

@@ -7,14 +7,16 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
-	"github.com/eclipse-keypont/gose/jose"
-	"github.com/stretchr/testify/require"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
+
+	"github.com/eclipse-keypont/gose/jose"
 )
 
 func TestJweDirectEncryptorBlock(t *testing.T) {
-    // vars
+	// vars
 	blockSize := 16
 	iv := make([]byte, blockSize)
 	_, err := rand.Read(iv)
@@ -57,7 +59,7 @@ func testEncryptDecrypt(t *testing.T, cryptor *JweDirectEncryptorBlock, decrypto
 	require.NotEmpty(t, marshalledJwe)
 
 	// verify the structure
-	splits := strings.Split(marshalledJwe,  ".")
+	splits := strings.Split(marshalledJwe, ".")
 	require.Equal(t, 5, len(splits))
 
 	// For direct encryption, the encrypted key is nil
@@ -90,7 +92,3 @@ func testEncryptDecrypt(t *testing.T, cryptor *JweDirectEncryptorBlock, decrypto
 	require.NotEmpty(t, plaintext)
 	require.Equal(t, mockExpectedCleartext, string(plaintext))
 }
-
-
-
-

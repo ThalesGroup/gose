@@ -26,9 +26,8 @@ type JweHeader struct {
 	Zip Zip `json:"zip,omitempty"`
 }
 
-// JwePerRecipientUnprotectedHeader
+// JwePerRecipientUnprotectedHeader is a JSON object that contains Header Parameters that apply to a single
 //
-//	JSON object that contains Header Parameters that apply to a single
 //	recipient of the JWE.  These Header Parameter values are not
 //	integrity protected.  This can only be present when using the JWE
 //	JSON Serialization.
@@ -36,14 +35,14 @@ type JwePerRecipientUnprotectedHeader struct {
 	PlaintextLength int `json:"plaintextLength"`
 }
 
-// JweSharedUnprotectedHeader
-//	JSON object that contains the Header Parameters that apply to all
+// JweSharedUnprotectedHeader is a JSON object that contains the Header Parameters that apply to all
+//
 //	recipients of the JWE that are not integrity protected.  This can
 //	only be present when using the JWE JSON Serialization.
 type JweSharedUnprotectedHeader struct{}
 
-// JweProtectedHeader
-//	JSON object that contains the Header Parameters that are integrity
+// JweProtectedHeader is a JSON object that contains the Header Parameters that are integrity
+//
 //	protected by the authenticated encryption operation.  These
 //	parameters apply to all recipients of the JWE.  For the JWE
 //	Compact Serialization, this comprises the entire JOSE Header.  For
@@ -52,36 +51,38 @@ type JweSharedUnprotectedHeader struct{}
 type JweProtectedHeader struct {
 	JwsHeader
 	JweCustomHeaderFields
-	Enc   Enc   `json:"enc"`
-	Zip   Zip   `json:"zip,omitempty"`
+	Enc Enc `json:"enc"`
+	Zip Zip `json:"zip,omitempty"`
 }
 
-// HeaderRfc7516
-// For a JWE, the JOSE Header members are the union of the members of :
-//   o  JWE Protected Header
-//   o  JWE Shared Unprotected Header
-//   o  JWE Per-Recipient Unprotected Header
+// HeaderRfc7516 is the JOSE Header for a JWE, the union of the members of :
+//
+//	o  JWE Protected Header
+//	o  JWE Shared Unprotected Header
+//	o  JWE Per-Recipient Unprotected Header
 type HeaderRfc7516 struct {
 	JweProtectedHeader
 	JweSharedUnprotectedHeader
 	JwePerRecipientUnprotectedHeader
 }
 
+// JweRfc7516Compact represents a JWE using the Compact Serialization as defined by https://tools.ietf.org/html/rfc7516.
 type JweRfc7516Compact struct {
-	ProtectedHeader JweProtectedHeader
-	EncryptedKey []byte
+	ProtectedHeader      JweProtectedHeader
+	EncryptedKey         []byte
 	InitializationVector []byte
-	Ciphertext []byte
-	AuthenticationTag []byte
+	Ciphertext           []byte
+	AuthenticationTag    []byte
 }
 
+// JweRfc7516 represents a JWE using the JSON Serialization as defined by https://tools.ietf.org/html/rfc7516.
 type JweRfc7516 struct {
-	Header HeaderRfc7516
-	EncryptedKey []byte
+	Header               HeaderRfc7516
+	EncryptedKey         []byte
 	InitializationVector []byte
-	Ciphertext []byte
-	AuthenticationTag []byte
-	AAD []byte
+	Ciphertext           []byte
+	AuthenticationTag    []byte
+	AAD                  []byte
 }
 
 // Jwe representation of a JWE.
@@ -93,8 +94,8 @@ type Jwe struct {
 	EncryptedKey     []byte
 	Iv               []byte
 	Ciphertext       []byte
-	Tag       []byte
-	Plaintext []byte
+	Tag              []byte
+	Plaintext        []byte
 }
 
 // MarshalHeader marshal JWE header. Note this is not guaranteed to result in the same marshaled representation across
@@ -108,6 +109,7 @@ func (jwe *Jwe) MarshalHeader() (err error) {
 	return
 }
 
+// MarshalHeader marshals the JWE header to its base64url-encoded JSON representation.
 func (jweHeader *JweHeader) MarshalHeader() (marshalledHeader []byte, err error) {
 	var headerBytes []byte
 	if headerBytes, err = json.Marshal(jweHeader); err != nil {
@@ -116,6 +118,7 @@ func (jweHeader *JweHeader) MarshalHeader() (marshalledHeader []byte, err error)
 	return []byte(base64.RawURLEncoding.EncodeToString(headerBytes)), nil
 }
 
+// MarshalProtectedHeader marshals the JWE protected header to its base64url-encoded JSON representation.
 func (jweProtectedHeader *JweProtectedHeader) MarshalProtectedHeader() (marshalledHeader []byte, err error) {
 	var headerBytes []byte
 	if headerBytes, err = json.Marshal(jweProtectedHeader); err != nil {
@@ -132,6 +135,7 @@ func concatByteArrays(slices [][]byte) []byte {
 	return tmp
 }
 
+// MarshallHeader marshals the union of the protected, shared unprotected, and per-recipient unprotected headers.
 func (jweHeader *HeaderRfc7516) MarshallHeader() (marshalledHeader []byte, err error) {
 	var protectedHeaderBytes []byte
 	var sharedUnprotectedHeaderBytes []byte
@@ -149,7 +153,7 @@ func (jweHeader *HeaderRfc7516) MarshallHeader() (marshalledHeader []byte, err e
 		[]byte(base64.RawURLEncoding.EncodeToString(protectedHeaderBytes)),
 		[]byte(base64.RawURLEncoding.EncodeToString(sharedUnprotectedHeaderBytes)),
 		[]byte(base64.RawURLEncoding.EncodeToString(perRecipientUnprotectedHeaderBytes)),
-		}
+	}
 	return concatByteArrays(encodedHeaders), nil
 }
 
@@ -188,6 +192,7 @@ func (jwe *Jwe) Unmarshal(src string) (err error) {
 	return
 }
 
+// Unmarshal parses a compact-serialized JWE string into its constituent parts.
 func (jwe *JweRfc7516Compact) Unmarshal(src string) (err error) {
 	// Compact JWE are divided in 5 parts :
 	//   o  Protected Header
@@ -243,19 +248,21 @@ func (jwe *Jwe) Marshal() string {
 }
 
 // Marshal a JWE to it's compact representation.
-//  Follow these steps:
-//   1. encode BASE64URL(UTF8(JWE ProtectedHeader))
-//   2. Encode BASE64URL(JWE Encrypted Key)
-//   3. Encode BASE64URL(JWE Initialization Vector)
-//   4. Create AAD, which is already ASCII(BASE64URL(UTF8(JWE Protected Header))).
-//   5. encode AL as an octet string for the unsigned int. Example : [0, 0, 0, 0, 0, 0, 1, 152].
-//   6. Encode BASE64URL(JWE Ciphertext).
-//   7. Encode BASE64URL(JWE Authentication Tag).
+//
+//	Follow these steps:
+//	 1. encode BASE64URL(UTF8(JWE ProtectedHeader))
+//	 2. Encode BASE64URL(JWE Encrypted Key)
+//	 3. Encode BASE64URL(JWE Initialization Vector)
+//	 4. Create AAD, which is already ASCII(BASE64URL(UTF8(JWE Protected Header))).
+//	 5. encode AL as an octet string for the unsigned int. Example : [0, 0, 0, 0, 0, 0, 1, 152].
+//	 6. Encode BASE64URL(JWE Ciphertext).
+//	 7. Encode BASE64URL(JWE Authentication Tag).
+//
 // TODO add the aad and the al
 func (jwe *JweRfc7516Compact) Marshal() (marshalledJwe string, err error) {
 	var marshalledHeader []byte
 	if marshalledHeader, err = jwe.ProtectedHeader.MarshalProtectedHeader(); err != nil {
-		return "", fmt.Errorf("error marshalling the JWE header: %v", err)
+		return "", fmt.Errorf("error marshalling the JWE header: %w", err)
 	}
 	stringz := []string{
 		string(marshalledHeader),

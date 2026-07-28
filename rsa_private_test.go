@@ -9,10 +9,12 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
-	"github.com/eclipse-keypont/gose/jose"
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
+
+	"github.com/eclipse-keypont/gose/jose"
 )
 
 func TestRsaPrivateKey_MarshalSucceeds(t *testing.T) {
@@ -90,4 +92,3 @@ func TestRsaPrivateKey_Verifier(t *testing.T) {
 	matches := verifier.Verify(jose.KeyOpsVerify, testData, signature)
 	assert.True(t, matches)
 }
-
