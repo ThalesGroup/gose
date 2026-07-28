@@ -8,6 +8,7 @@
 [![Release](https://github.com/eclipse-keypont/gose/actions/workflows/release.yml/badge.svg)](https://github.com/eclipse-keypont/gose/actions/workflows/release.yml)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/eclipse-keypont/gose/badge)](https://scorecard.dev/viewer/?uri=github.com/eclipse-keypont/gose)
 [![GitHub release](https://img.shields.io/github/v/release/eclipse-keypont/gose)](https://github.com/eclipse-keypont/gose/releases/latest)
+[![Changelog](https://img.shields.io/badge/changelog-v1%20%E2%86%92%20v2-blue)](./CHANGELOG.md)
 
 ## Overview
 
@@ -19,6 +20,8 @@ This repository is built with a hardened GitHub Actions pipeline: golangci-lint,
 scanning, dependency review, and an OpenSSF Scorecard rating gate every push, and tagged releases are signed
 and SLSA3-attested rather than just pushed — see [Releases & verification](#releases--verification) below for
 what ships and how to check it.
+
+Upgrading from v1? See [CHANGELOG.md](./CHANGELOG.md) for the breaking changes and what's new in v2.0.0.
 
 ## Known Issues
 
