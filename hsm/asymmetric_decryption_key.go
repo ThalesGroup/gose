@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Thales Group and the gose Contributors
 // SPDX-License-Identifier: MIT
 
+// Package hsm provides asymmetric decryption keys backed by a Hardware Security Module.
 package hsm
 
 import (
@@ -9,7 +10,8 @@ import (
 	"crypto/x509"
 	"log/slog"
 
-	"github.com/ThalesGroup/crypto11"
+	"github.com/eclipse-keypont/crypto11/v2"
+
 	"github.com/eclipse-keypont/gose"
 	"github.com/eclipse-keypont/gose/jose"
 )

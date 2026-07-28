@@ -11,11 +11,6 @@ on:
 permissions:
   contents: read
 
-env:
-  # Local `replace` directives in go.mod point at sibling checkouts that do not
-  # exist on the runner; resolve dependencies from the committed vendor/ tree.
-  GOFLAGS: -mod=vendor
-
 jobs:
   build-test:
     name: Build & test
