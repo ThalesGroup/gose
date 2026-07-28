@@ -34,6 +34,18 @@ linters:
           - errcheck
           - gosec
           - unparam
+      # These implement/exercise the legacy (non-RFC7516-compliant) jose.Jwe and
+      # jose.JweHeader types on purpose, for backwards compatibility.
+      - path: jwe_direct_(en|de)cryptor_aead(_test)?\.go
+        linters:
+          - staticcheck
+        text: "SA1019"
+      # Exercises rsa.PrivateKey.Precomputed.CRTValues, which crypto/rsa keeps
+      # populating for backwards compatibility despite deprecating it.
+      - path: helpers_test\.go
+        linters:
+          - staticcheck
+        text: "SA1019"
 
 formatters:
   enable:
