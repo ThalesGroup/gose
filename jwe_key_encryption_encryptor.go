@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/eclipse-keypont/gose/jose"
+	"github.com/eclipse-keypont/gose/v2/jose"
 )
 
 const cekSize uint8 = 32

@@ -10,7 +10,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/eclipse-keypont/gose/jose"
+	"github.com/eclipse-keypont/gose/v2/jose"
 )
 
 // TrustKeyStoreImpl implements the Trust Store API

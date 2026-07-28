@@ -1,7 +1,7 @@
 
 # GOSE - JOSE and friends for the Go developer
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/eclipse-keypont/gose.svg)](https://pkg.go.dev/github.com/eclipse-keypont/gose)
+[![Go Reference](https://pkg.go.dev/badge/github.com/eclipse-keypont/gose/v2.svg)](https://pkg.go.dev/github.com/eclipse-keypont/gose/v2)
 [![Build](https://github.com/eclipse-keypont/gose/actions/workflows/ci.yml/badge.svg)](https://github.com/eclipse-keypont/gose/actions/workflows/ci.yml)
 [![Lint](https://github.com/eclipse-keypont/gose/actions/workflows/lint.yml/badge.svg)](https://github.com/eclipse-keypont/gose/actions/workflows/lint.yml)
 [![Secret Scan](https://github.com/eclipse-keypont/gose/actions/workflows/secret-scan.yml/badge.svg)](https://github.com/eclipse-keypont/gose/actions/workflows/secret-scan.yml)

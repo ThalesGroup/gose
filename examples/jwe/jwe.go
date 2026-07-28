@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/eclipse-keypont/gose"
-	"github.com/eclipse-keypont/gose/jose"
+	"github.com/eclipse-keypont/gose/v2"
+	"github.com/eclipse-keypont/gose/v2/jose"
 )
 
 var (

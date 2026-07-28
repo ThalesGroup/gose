@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/eclipse-keypont/gose/jose"
+	"github.com/eclipse-keypont/gose/v2/jose"
 )
 
 var curves = []elliptic.Curve{elliptic.P256(), elliptic.P384(), elliptic.P521()}

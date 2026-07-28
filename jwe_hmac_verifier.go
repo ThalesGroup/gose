@@ -7,7 +7,7 @@ import (
 	"crypto/hmac"
 	"fmt"
 
-	"github.com/eclipse-keypont/gose/jose"
+	"github.com/eclipse-keypont/gose/v2/jose"
 )
 
 // JweHmacVerifierImpl implements the JWE Verification API
