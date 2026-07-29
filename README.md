@@ -1,6 +1,13 @@
 
 # GOSE - JOSE and friends for the Go developer
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/ThalesGroup/gose.svg)](https://pkg.go.dev/github.com/ThalesGroup/gose)
+
+> **⚠ Deprecated.** `github.com/ThalesGroup/gose` is frozen as of this release and will
+> receive no further updates, including security fixes. Development continues at
+> [github.com/eclipse-keypont/gose](https://github.com/eclipse-keypont/gose) — update your
+> import paths and `go.mod` requirement to that module.
+
 ## Overview
 
 GOSE is JOSE/JWT/JWK/JWS/JWKS implemented in Go with Helpers, and examples.
