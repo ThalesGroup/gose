@@ -7,6 +7,24 @@ SRCS := $(wildcard *.go) $(wildcard jose/*.go)
 
 all: clean build vet lint govulncheck coverage
 
+# ── Tool preconditions ───────────────────────────────────────────────────────
+# $(call require,<binary>,<how to install it>) — fail early with an install hint.
+#
+# Probes by running the tool, not `command -v`: a goenv shim stays on PATH even
+# when the tool is not installed for the active Go version, so `command -v` says
+# yes and the build dies later. Exit 127 (missing binary or dead shim) is the
+# only status treated as missing; tools without --version exit 1 or 2 and pass.
+#
+# A hint must not contain a comma — make would read it as another $(call) argument.
+define require
+@$(1) --version >/dev/null 2>&1; \
+if [ $$? -eq 127 ]; then \
+    echo "$(1) not found. Install it with:"; \
+    echo "  $(2)"; \
+    exit 1; \
+fi
+endef
+
 # ── Build ────────────────────────────────────────────────────────────────────
 build:
 	go build ./...
@@ -32,17 +50,15 @@ coverage.out: $(SRCS)
 #   go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
 # Ensure $(go env GOPATH)/bin is on your PATH, then `golangci-lint version`.
 GOLANGCI_LINT ?= golangci-lint
+GOLANGCI_LINT_INSTALL_HINT := go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
 
 lint:
-	@command -v $(GOLANGCI_LINT) >/dev/null 2>&1 || { \
-	    echo "golangci-lint not found. Install the v2 binary with:"; \
-	    echo "  go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest"; \
-	    exit 1; \
-	}
+	$(call require,$(GOLANGCI_LINT),$(GOLANGCI_LINT_INSTALL_HINT))
 	$(GOLANGCI_LINT) run ./...
 
 # Auto-fix the mechanically-fixable findings (formatting, some conversions):
 lint-fix:
+	$(call require,$(GOLANGCI_LINT),$(GOLANGCI_LINT_INSTALL_HINT))
 	$(GOLANGCI_LINT) run --fix ./...
 
 # ── Vulnerability scan ───────────────────────────────────────────────────────
@@ -54,16 +70,19 @@ lint-fix:
 GOVULNCHECK ?= govulncheck
 
 govulncheck:
-	@command -v $(GOVULNCHECK) >/dev/null 2>&1 || { \
-	    echo "govulncheck not found. Install it with:"; \
-	    echo "  go install golang.org/x/vuln/cmd/govulncheck@latest"; \
-	    exit 1; \
-	}
+	$(call require,$(GOVULNCHECK),go install golang.org/x/vuln/cmd/govulncheck@latest)
 	$(GOVULNCHECK) -show verbose ./...
 
 ## Licenses
+# Generated via a temp file: redirecting straight into NOTICES.md truncates it
+# to zero bytes whenever go-licenses fails, destroying the committed file before
+# anyone sees the error. Write, then move only on success.
+GO_LICENSES ?= go-licenses
+
 notices:
-	@go-licenses report ./... --ignore github.com/eclipse-keypont/gose,github.com/eclipse-keypont/crypto11/v2,github.com/eclipse-keypont/pkcs11-go --template go-licenses.tpl > NOTICES.md
+	$(call require,$(GO_LICENSES),go install github.com/google/go-licenses@latest)
+	@{ $(GO_LICENSES) report ./... --ignore github.com/eclipse-keypont/gose,github.com/eclipse-keypont/crypto11/v2,github.com/eclipse-keypont/pkcs11-go --template go-licenses.tpl > NOTICES.md.tmp && \
+	   mv NOTICES.md.tmp NOTICES.md; } || { rm -f NOTICES.md.tmp; exit 1; }
 	@echo "NOTICES.md generated"
 
 # ── Clean ────────────────────────────────────────────────────────────────────
