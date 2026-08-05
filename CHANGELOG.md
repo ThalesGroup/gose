@@ -23,6 +23,12 @@ second major version onward).
   `jwe_mlkem_encryptor.go`, `jwe_mlkem_decryptor.go`, `hsm/mlkem_key.go`, `hsm/mlkem_key_store.go`
   and the `EncapsPubMlKemKey` / `DecapsPrivMlKemKey` / `DecapsPrivMlKemKeyStore` interfaces are gone
   pending a JOSE-side draft.
+- **`jose.AlgRSAOAEPSHA2` is now `"RSA-OAEP-256"`, not `"RSA-OAEP"`.** It previously shared a value
+  with `AlgRSAOAEP` and `AlgRSAOAEPSHA1`, so the SHA-256 variant went out on the wire under the
+  name RFC 7518 §4.3 reserves for the SHA-1 variant. JWEs produced with `crypto.SHA256` now carry
+  `"alg":"RSA-OAEP-256"` and are readable by other RFC 7518 implementations. Peers pinned to the old
+  mislabelled output will not interoperate until they are updated; see *Fixed* for reading
+  previously written data.
 - `TrustStore.Get` and `JwksTrustStore` now take a `context.Context`
   (`Get(issuer, kid string)` → `Get(ctx context.Context, issuer, kid string)`); the underlying
   `httpClient` interface moved from `Get(url)` to `Do(req *http.Request)`.
@@ -31,6 +37,19 @@ second major version onward).
 
 ### Fixed
 
+- **RSAES-OAEP JWEs advertised the wrong `alg`.** RFC 7518 §4.3 defines `RSA-OAEP` as OAEP with
+  SHA-1 and `RSA-OAEP-256` as the SHA-256 variant, but gose emitted `RSA-OAEP` for both: the three
+  constants `AlgRSAOAEP`, `AlgRSAOAEPSHA1` and `AlgRSAOAEPSHA2` all held `"RSA-OAEP"`. The output
+  round-tripped against itself but a conformant recipient would derive SHA-1 and fail to unwrap the
+  CEK, so these JWEs were not portable. The header now names the digest actually used, and
+  `JweRsaKeyEncryptionEncryptorImpl.Encrypt` rejects digests RFC 7518 registers no OAEP algorithm
+  for (previously e.g. SHA-512 was accepted and labelled `RSA-OAEP`).
+  `JweRsaKeyEncryptionDecryptorImpl.Decrypt` now derives the OAEP digest from the header when
+  passed `crypto.Hash(0)`. Passing a non-zero `crypto.Hash` still overrides the header, which is how
+  JWEs written by earlier versions — `RSA-OAEP` in the header, SHA-256 on the wire — stay readable;
+  data at rest does not need re-encrypting. `hsm.AsymmetricDecryptionKey` and generated JWKs keep
+  `RSA-OAEP` as their `alg`, naming the OAEP family: the per-message digest comes from the JWE
+  header, so one key still serves both variants (SoftHSMv2 implements only SHA-1).
 - **AES-CBC + HMAC integrity bug**: `HmacShaCryptor.Hash` called `hash.Sum(input)`, which appends
   the digest to `input` instead of hashing it — since `Write` was never called, this computed the
   HMAC of the empty string rather than of the message. Masked by a PKCS#11 binding that silently

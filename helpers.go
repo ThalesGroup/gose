@@ -72,16 +72,17 @@ func intersection(first []jose.KeyOps, second []jose.KeyOps) []jose.KeyOps {
 // LoadPrivateKey loads the jwk into a crypto.Signer for performing signing operations
 func LoadPrivateKey(jwk jose.Jwk, required []jose.KeyOps) (crypto.Signer, error) {
 	privateKeyAlgs := map[jose.Alg]bool{
-		jose.AlgRS256:   true,
-		jose.AlgRS384:   true,
-		jose.AlgRS512:   true,
-		jose.AlgPS256:   true,
-		jose.AlgPS384:   true,
-		jose.AlgPS512:   true,
-		jose.AlgES256:   true,
-		jose.AlgES384:   true,
-		jose.AlgES512:   true,
-		jose.AlgRSAOAEP: true,
+		jose.AlgRS256:       true,
+		jose.AlgRS384:       true,
+		jose.AlgRS512:       true,
+		jose.AlgPS256:       true,
+		jose.AlgPS384:       true,
+		jose.AlgPS512:       true,
+		jose.AlgES256:       true,
+		jose.AlgES384:       true,
+		jose.AlgES512:       true,
+		jose.AlgRSAOAEP:     true,
+		jose.AlgRSAOAEPSHA2: true,
 	}
 
 	if _, ok := privateKeyAlgs[jwk.Alg()]; !ok {
@@ -134,16 +135,17 @@ func LoadPrivateKey(jwk jose.Jwk, required []jose.KeyOps) (crypto.Signer, error)
 // LoadPublicKey loads jwk as a public key for cryptographic verification operations.
 func LoadPublicKey(jwk jose.Jwk, required []jose.KeyOps) (crypto.PublicKey, error) {
 	publicKeyAlgs := map[jose.Alg]bool{
-		jose.AlgRS256:   true,
-		jose.AlgRS384:   true,
-		jose.AlgRS512:   true,
-		jose.AlgPS256:   true,
-		jose.AlgPS384:   true,
-		jose.AlgPS512:   true,
-		jose.AlgES256:   true,
-		jose.AlgES384:   true,
-		jose.AlgES512:   true,
-		jose.AlgRSAOAEP: true,
+		jose.AlgRS256:       true,
+		jose.AlgRS384:       true,
+		jose.AlgRS512:       true,
+		jose.AlgPS256:       true,
+		jose.AlgPS384:       true,
+		jose.AlgPS512:       true,
+		jose.AlgES256:       true,
+		jose.AlgES384:       true,
+		jose.AlgES512:       true,
+		jose.AlgRSAOAEP:     true,
+		jose.AlgRSAOAEPSHA2: true,
 	}
 	if _, ok := publicKeyAlgs[jwk.Alg()]; !ok {
 		return nil, ErrInvalidKeyType

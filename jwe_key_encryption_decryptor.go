@@ -23,6 +23,15 @@ type JweRsaKeyEncryptionDecryptorImpl struct {
 // Decrypt decrypts the given JWE returning the contained plaintext and any additional authentic
 // associated data.
 // This method follow recommendations of https://datatracker.ietf.org/doc/html/rfc7516#section-5.2
+//
+// Pass crypto.Hash(0) as oaepHash to derive the OAEP digest from the "alg" header, which is
+// what RFC 7518 §4.3 requires and what every conformant producer allows: "RSA-OAEP" means
+// SHA-1 and "RSA-OAEP-256" means SHA-256.
+//
+// A non-zero oaepHash overrides the header. This exists only to read JWEs written by gose
+// before it labelled the SHA-256 variant correctly, which carry "RSA-OAEP" in the header
+// but wrap the CEK with SHA-256; such JWEs are not portable to other implementations.
+// Do not use the override for newly produced JWEs.
 func (d *JweRsaKeyEncryptionDecryptorImpl) Decrypt(jweRaw string, oaepHash crypto.Hash) (plaintext, aad []byte, err error) {
 	// deserialize jwe
 	var jwe jose.JweRfc7516Compact
@@ -48,9 +57,17 @@ func (d *JweRsaKeyEncryptionDecryptorImpl) Decrypt(jweRaw string, oaepHash crypt
 		return nil, nil, fmt.Errorf("error getting key from keystore: %w", err)
 	}
 
-	// Check alg is as expected
-	if jwe.ProtectedHeader.Alg != key.Algorithm() {
+	// Check alg is as expected. The header names one of the two RSAES-OAEP variants while
+	// the key names the family, so compare on the family and take the digest from the header.
+	headerHash, headerIsOaep := OaepHashFromAlg(jwe.ProtectedHeader.Alg)
+	if !headerIsOaep || !isRsaOaepAlg(key.Algorithm()) {
 		return nil, nil, ErrInvalidAlgorithm
+	}
+
+	// RFC 7518 §4.3 binds the digest to the header; a caller-supplied digest overrides it
+	// only to read legacy gose JWEs that advertise "RSA-OAEP" but were wrapped with SHA-256.
+	if oaepHash == crypto.Hash(0) {
+		oaepHash = headerHash
 	}
 
 	// Decrypt CEK

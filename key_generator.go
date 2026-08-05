@@ -34,7 +34,8 @@ var (
 		jose.AlgA256GCM: 32,
 	}
 	rsaEncryptionAlgs = map[jose.Alg]bool{
-		jose.AlgRSAOAEP: true,
+		jose.AlgRSAOAEP:     true,
+		jose.AlgRSAOAEPSHA2: true,
 	}
 )
 

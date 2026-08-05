@@ -40,6 +40,14 @@ linters:
         linters:
           - staticcheck
         text: "SA1019"
+      # G505: blank-imports crypto/sha1 to guarantee crypto.SHA1.New() is linked in.
+      # RFC 7518 §4.3 defines "RSA-OAEP" as OAEP with SHA-1, so gose must be able to
+      # produce and consume it to interoperate; SHA-1's collision resistance is not
+      # relied upon in the OAEP construction.
+      - path: rsa_oaep_alg\.go
+        linters:
+          - gosec
+        text: "G505"
       # Exercises rsa.PrivateKey.Precomputed.CRTValues, which crypto/rsa keeps
       # populating for backwards compatibility despite deprecating it.
       - path: helpers_test\.go

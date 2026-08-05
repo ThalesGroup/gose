@@ -33,10 +33,22 @@ type JweRsaKeyEncryptionEncryptorImpl struct {
 // produce the JWE Encrypted Key.
 // Authenticated encryption is performed on the plaintext using the AES GCM algorithm with a 256-bit
 // key to produce the ciphertext and the Authentication Tag.
+//
+// oaepHash selects the OAEP digest and therefore the "alg" advertised in the protected
+// header: crypto.SHA1 produces "RSA-OAEP" and crypto.SHA256 produces "RSA-OAEP-256", per
+// RFC 7518 §4.3. Any other digest is rejected, because RFC 7518 registers no "alg" value
+// that would describe the result to a recipient.
 func (e *JweRsaKeyEncryptionEncryptorImpl) Encrypt(plaintext []byte, oaepHash crypto.Hash) (jwe string, err error) {
+	// The header must name the digest actually used to wrap the CEK, otherwise a
+	// conformant recipient derives the wrong OAEP parameters and decryption fails.
+	oaepAlg, ok := OaepAlgFromHash(oaepHash)
+	if !ok {
+		return "", fmt.Errorf("%w: no RFC 7518 RSAES-OAEP algorithm for digest %v", ErrInvalidAlgorithm, oaepHash)
+	}
+
 	// create the protected header
-	// {"alg":"RSA-OAEP","enc":"A256GCM"}
-	protectedHeader := e.makeJweProtectedHeader()
+	// {"alg":"RSA-OAEP-256","enc":"A256GCM"}
+	protectedHeader := e.makeJweProtectedHeader(oaepAlg)
 
 	// generate the 256-bit CEK, 32 bytes long
 	cek := make([]byte, cekSize)
@@ -98,12 +110,14 @@ func (e *JweRsaKeyEncryptionEncryptorImpl) Encrypt(plaintext []byte, oaepHash cr
 	return
 }
 
-// makeJweProtectedHeader builds the JWE structure
-func (e *JweRsaKeyEncryptionEncryptorImpl) makeJweProtectedHeader() *jose.JweProtectedHeader {
+// makeJweProtectedHeader builds the JWE structure.
+// oaepAlg is the RFC 7518 §4.3 algorithm matching the digest used to wrap the CEK; it is
+// authoritative over the recipient key's own "alg", which names only the OAEP family.
+func (e *JweRsaKeyEncryptionEncryptorImpl) makeJweProtectedHeader(oaepAlg jose.Alg) *jose.JweProtectedHeader {
 	return &jose.JweProtectedHeader{
 		JwsHeader: jose.JwsHeader{
-			// AlgRSAOAEP = "RSA-OAEP"
-			Alg: e.rsaAlg,
+			// "RSA-OAEP" (SHA-1) or "RSA-OAEP-256" (SHA-256)
+			Alg: oaepAlg,
 			Kid: e.rsaPublicKid,
 			Typ: "JWT",
 			Cty: "JWT",
@@ -133,6 +147,12 @@ func NewJweRsaKeyEncryptionEncryptorImpl(rsaPublicKeyRecipient jose.Jwk, randomS
 	rsaKek, ok := kek.(*rsa.PublicKey)
 	if !ok {
 		return nil, ErrInvalidKeyType
+	}
+	// an RSA key is not enough: it must be an RSAES-OAEP key rather than, say, an RS256
+	// signing key. Which of the two OAEP variants applies is chosen per-operation by the
+	// digest passed to Encrypt.
+	if !isRsaOaepAlg(rsaPublicKeyRecipient.Alg()) {
+		return nil, ErrInvalidAlgorithm
 	}
 
 	return &JweRsaKeyEncryptionEncryptorImpl{

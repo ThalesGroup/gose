@@ -80,16 +80,17 @@ const (
 	AlgA256CBC Alg = "A256CBC"
 	// AlgDir direct encryption for use with JWEs
 	AlgDir Alg = "dir"
-	// AlgRSAOAEP RSA OAEP Key encryption for use with JWEs
+	// AlgRSAOAEP RSAES-OAEP with SHA-1 and MGF1 with SHA-1, as registered by RFC 7518 §4.3.
+	// Alias of AlgRSAOAEPSHA1; prefer the explicitly named constant in new code.
 	AlgRSAOAEP Alg = "RSA-OAEP"
-	// AlgRSAOAEPSHA1 and AlgRSAOAEPSHA2 are here to differentiate RSA OAEP using SHA1 or SHA2 for
-	// encryption / decryption in the code, like in switch case statements for example.
-	// They have the same value as AlgRSAOAEP nonetheless.
-	// Because some KMS like SoftHSMv2 do not implement RSA-OAEP with SHA2 yet, but some others do,
-	// we need to support both of these modes in gose implementation.
+	// AlgRSAOAEPSHA1 RSAES-OAEP with SHA-1, RFC 7518 §4.3.
+	// Some KMS, notably SoftHSMv2, implement only the SHA-1 variant, so gose supports both
+	// this and AlgRSAOAEPSHA2. The two are distinct on the wire: a JWE header advertising
+	// "RSA-OAEP" is decryptable only with SHA-1, and "RSA-OAEP-256" only with SHA-256.
 	AlgRSAOAEPSHA1 Alg = "RSA-OAEP"
-	// AlgRSAOAEPSHA2 RSA OAEP Key encryption using SHA2, see AlgRSAOAEPSHA1.
-	AlgRSAOAEPSHA2 Alg = "RSA-OAEP"
+	// AlgRSAOAEPSHA2 RSAES-OAEP with SHA-256 and MGF1 with SHA-256, RFC 7518 §4.3.
+	// See AlgRSAOAEPSHA1 for why both variants exist.
+	AlgRSAOAEPSHA2 Alg = "RSA-OAEP-256"
 
 	//CrvP256 NIST P-256
 	CrvP256 Crv = "P-256"
