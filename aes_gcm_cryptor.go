@@ -50,6 +50,18 @@ func (cryptor *AesGcmCryptor) Open(operation jose.KeyOps, nonce, ciphertext, aad
 		err = ErrInvalidOperations
 		return
 	}
+	// The nonce comes straight off the wire on the decryption path. cipher.AEAD.Open
+	// panics rather than erroring on a wrong-sized nonce, so check it here as Seal does.
+	if len(nonce) != cryptor.aead.NonceSize() {
+		err = ErrInvalidNonce
+		return
+	}
+	// Likewise the tag: a wrong-sized tag cannot authenticate, and rejecting it here
+	// gives the caller a precise error instead of an opaque authentication failure.
+	if len(tag) != cryptor.aead.Overhead() {
+		err = ErrInvalidAuthenticationTag
+		return
+	}
 	dst := make([]byte, 0, len(ciphertext))
 	ciphertextAndTag := make([]byte, len(ciphertext)+len(tag))
 	_ = copy(ciphertextAndTag, ciphertext)

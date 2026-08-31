@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 	"sync"
@@ -15,6 +16,11 @@ import (
 
 	"github.com/eclipse-keypont/gose/jose"
 )
+
+// maxJwksBytes bounds how much of a JWKS response is read. Real key sets are a few
+// kilobytes; the cap keeps a hostile or misconfigured endpoint from handing us an
+// unbounded body to parse.
+const maxJwksBytes = 1 << 20 // 1 MiB
 
 // Interface wrapper to allow mocking of http client.
 type httpClient interface {
@@ -87,7 +93,8 @@ func (store *JwksTrustStore) Get(ctx context.Context, issuer, kid string) (vk Ve
 			err = fmt.Errorf("error encountered retrieving JWKS from %s: %d %s", store.url, response.StatusCode, response.Status)
 			return
 		}
-		decoder := json.NewDecoder(response.Body)
+		// Bound the response: the body is remote input and parsing it is not free.
+		decoder := json.NewDecoder(io.LimitReader(response.Body, maxJwksBytes))
 		var jwks jose.Jwks
 		if err = decoder.Decode(&jwks); err != nil {
 			err = fmt.Errorf("error encountered retrieving JWKS from %s: invalid encoding", store.url)
@@ -95,12 +102,14 @@ func (store *JwksTrustStore) Get(ctx context.Context, issuer, kid string) (vk Ve
 		}
 		keys := make([]VerificationKey, 0, len(jwks.Keys))
 		for _, jwk := range jwks.Keys {
-			vk, err = NewVerificationKey(jwk)
-			if err != nil {
-				err = fmt.Errorf("failed to load verification key from JWK: %w", err)
-				return
+			// Deliberately a local, not the named return: assigning to vk here left the
+			// last-parsed key in the named return, so the "not found" fall-through below
+			// handed the caller that key with a nil error instead of nothing.
+			key, keyErr := NewVerificationKey(jwk)
+			if keyErr != nil {
+				return nil, fmt.Errorf("failed to load verification key from JWK: %w", keyErr)
 			}
-			keys = append(keys, vk)
+			keys = append(keys, key)
 		}
 		// Replace the keys for our store.
 		store.keys = keys
@@ -112,8 +121,9 @@ func (store *JwksTrustStore) Get(ctx context.Context, issuer, kid string) (vk Ve
 			}
 		}
 	}
-	// No such currently valid key or issuer
-	return
+	// No such currently valid key or issuer. Explicit, so that neither a stale vk nor a
+	// stale err can leak out through a naked return.
+	return nil, nil
 }
 
 // NewJwksKeyStore creates a new instance of a TrustStore and can be used to load verification keys.

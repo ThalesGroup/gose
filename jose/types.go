@@ -171,6 +171,16 @@ var (
 
 	//ErrJweFormat when a JWE isn't formatted correctly
 	ErrJweFormat = errors.New("invalid JWE format")
+
+	//ErrTooManyKeyOps when a JWK declares more key_ops entries than can plausibly be
+	//meaningful. RFC 7517 §4.3 defines a small fixed set; a document carrying thousands
+	//is malformed, and bounding it keeps key_ops validation cheap.
+	ErrTooManyKeyOps = errors.New("too many key_ops entries")
+
+	//ErrCritHeaderNotSupported when a JWS/JWT carries a non-empty "crit" header. gose
+	//implements no JWS header extensions, so RFC 7515 §4.1.11 requires rejecting any
+	//token that marks extensions as critical.
+	ErrCritHeaderNotSupported = errors.New("unsupported critical header parameter")
 )
 
 func unmarshalJSONBlob(src []byte, decoder *base64.Encoding) (dst []byte, err error) {

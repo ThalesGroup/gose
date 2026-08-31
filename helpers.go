@@ -8,6 +8,7 @@ import (
 	"crypto"
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/elliptic"
 	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/x509"
@@ -69,6 +70,21 @@ func intersection(first []jose.KeyOps, second []jose.KeyOps) []jose.KeyOps {
 	return result
 }
 
+// ecdsaCurveForAlg resolves the elliptic curve for an EC JWK's "alg".
+//
+// A JWK's Go type is chosen from "kty" alone and is never cross-validated against
+// "alg", so an EC key can arrive carrying an RSA alg — RFC 7517 §4.4 permits it and
+// the document is well formed. algToOptsMap then yields a crypto.Hash, a
+// *rsa.PSSOptions, or nothing at all, and an unchecked assertion to *ECDSAOptions
+// panics. Resolving through this helper turns that into an error.
+func ecdsaCurveForAlg(alg jose.Alg) (elliptic.Curve, error) {
+	opts, ok := algToOptsMap[alg].(*ECDSAOptions)
+	if !ok {
+		return nil, ErrInvalidKeyType
+	}
+	return opts.curve, nil
+}
+
 // LoadPrivateKey loads the jwk into a crypto.Signer for performing signing operations
 func LoadPrivateKey(jwk jose.Jwk, required []jose.KeyOps) (crypto.Signer, error) {
 	privateKeyAlgs := map[jose.Alg]bool{
@@ -125,7 +141,11 @@ func LoadPrivateKey(jwk jose.Jwk, required []jose.KeyOps) (crypto.Signer, error)
 		key.X = v.X.Int()
 		key.Y = v.Y.Int()
 		key.D = v.D.Int()
-		key.Curve = algToOptsMap[v.Alg()].(*ECDSAOptions).curve
+		curve, err := ecdsaCurveForAlg(v.Alg())
+		if err != nil {
+			return nil, err
+		}
+		key.Curve = curve
 		return &key, nil
 	default:
 		return nil, ErrUnsupportedKeyType
@@ -176,7 +196,11 @@ func LoadPublicKey(jwk jose.Jwk, required []jose.KeyOps) (crypto.PublicKey, erro
 		}
 		key.X = v.X.Int()
 		key.Y = v.Y.Int()
-		key.Curve = algToOptsMap[v.Alg()].(*ECDSAOptions).curve
+		curve, err := ecdsaCurveForAlg(v.Alg())
+		if err != nil {
+			return nil, err
+		}
+		key.Curve = curve
 		return &key, nil
 	default:
 		return nil, ErrUnsupportedKeyType

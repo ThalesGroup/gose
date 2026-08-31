@@ -29,7 +29,8 @@ var (
 	ErrInvalidYEncoding error = &InvalidFormat{("Invalid Y encoding")}
 
 	//GCM errors
-	ErrInvalidNonce = errors.New("invalid nonce")
+	ErrInvalidNonce             = errors.New("invalid nonce")
+	ErrInvalidAuthenticationTag = errors.New("invalid authentication tag")
 
 	// JOSE errors
 	ErrInvalidJwsCompactEncoding         error = &InvalidFormat{"invalid jws compact encoding"}

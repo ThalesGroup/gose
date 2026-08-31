@@ -87,6 +87,15 @@ func (d *JweRsaKeyEncryptionDecryptorImpl) Decrypt(jweRaw string, oaepHash crypt
 	if aead, err = cipher.NewGCM(block); err != nil {
 		return nil, nil, fmt.Errorf("error creating GCM AEAD: %w", err)
 	}
+	// The IV and tag are attacker-controlled: producing a valid EncryptedKey needs only
+	// the recipient's public key, so this point is reachable without any secret. GCM.Open
+	// panics on a wrong-sized nonce, so both lengths are checked before we reach it.
+	if len(jwe.InitializationVector) != aead.NonceSize() {
+		return nil, nil, ErrInvalidNonce
+	}
+	if len(jwe.AuthenticationTag) != aead.Overhead() {
+		return nil, nil, ErrInvalidAuthenticationTag
+	}
 	// concatenate ciphertext and tag for authenticated decryption
 	// [ciphertext + tag] is the result of the encryption and needs to be provided for decryption
 	ctAndTag := make([]byte, len(jwe.Ciphertext)+len(jwe.AuthenticationTag))

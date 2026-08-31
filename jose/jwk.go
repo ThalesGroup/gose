@@ -158,16 +158,24 @@ func (j *jwkFields) SetX5T(blob *Fingerprint) {
 	j.KeyX5T = blob
 }
 
+// maxKeyOps bounds the number of key_ops entries accepted on a JWK. RFC 7517 §4.3
+// defines eight values and does not forbid others, so this is deliberately generous
+// rather than an exact whitelist — it exists to stop a hostile JWKS body forcing
+// unbounded validation work, not to reject unusual-but-legitimate documents.
+const maxKeyOps = 64
+
 func (j *jwkFields) CheckConsistency() error {
-	// Check for duplicate KeyOps.
-	if len(j.KeyOps) > 0 {
-		for i, candidate := range j.KeyOps[:len(j.KeyOps)-1] {
-			for _, item := range j.KeyOps[i+1:] {
-				if candidate == item {
-					return ErrDuplicateKeyOps
-				}
-			}
+	// Check for duplicate KeyOps. A set keeps this linear: the previous pairwise scan
+	// was quadratic, letting a sub-1MB JWKS body burn ~15s of CPU on one core.
+	if len(j.KeyOps) > maxKeyOps {
+		return ErrTooManyKeyOps
+	}
+	seen := make(map[KeyOps]struct{}, len(j.KeyOps))
+	for _, op := range j.KeyOps {
+		if _, duplicate := seen[op]; duplicate {
+			return ErrDuplicateKeyOps
 		}
+		seen[op] = struct{}{}
 	}
 	// Check certificate and thumb-print matches
 

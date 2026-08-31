@@ -113,6 +113,13 @@ func (c *JwtClaims) UnmarshalCustomClaim(name string, claim interface{}) error {
 }
 
 // MarshalJSON implements json.Marshaler interface method.
+//
+// Claim names are merged into a map rather than into a dynamically built struct.
+// The struct approach (reflect.StructOf with a synthesised "A"+name field) panicked
+// on any claim name that is not a valid Go identifier suffix — which includes the
+// URL-namespaced names that OIDC mandates for custom claims, e.g.
+// "https://example.com/roles" — and on names colliding with the embedded field
+// names. A map has no such constraint and round-trips every name JSON permits.
 func (c *JwtClaims) MarshalJSON() (dst []byte, err error) {
 	// Temporary type and instance. Note the use of references.
 	output := struct {
@@ -123,41 +130,25 @@ func (c *JwtClaims) MarshalJSON() (dst []byte, err error) {
 		SettableJwtClaims:  &c.SettableJwtClaims,
 	}
 
-	// Dynamically generate a struct with typed and untyped fields for marshalling.
-
-	// Copy struct fields from our temporary type
-	fields := make([]reflect.StructField, 0, reflect.TypeOf(output).NumField())
-	for i := 0; i < reflect.TypeOf(output).NumField(); i++ {
-		fields = append(fields, reflect.TypeOf(output).Field(i))
+	// Marshal the typed claims first, then decompose them into the output map so the
+	// typed and untyped halves can be merged in a single object.
+	var typed []byte
+	if typed, err = json.Marshal(output); err != nil {
+		return nil, err
 	}
-	// Create struct fields for each untyped entry.
-	for k := range c.UntypedClaims {
+	merged := map[string]json.RawMessage{}
+	if err = json.Unmarshal(typed, &merged); err != nil {
+		return nil, err
+	}
+
+	for k, v := range c.UntypedClaims {
 		// Validate untyped fields do not clash with standard JWT claims.
 		if _, invalid := reservedJwtClaims[k]; invalid {
-			err = ErrJwkReservedClaimName
-			return
+			return nil, ErrJwkReservedClaimName
 		}
-		field := reflect.StructField{
-			Name:      fmt.Sprintf("A%s", k), // Add the "A" to make sure the field is exported.
-			Type:      reflect.TypeOf(json.RawMessage{}),
-			Tag:       reflect.StructTag(fmt.Sprintf("json:\"%s\"", k)), // Fix the field.
-			Index:     []int{len(fields)},
-			Anonymous: false,
-		}
-		fields = append(fields, field)
+		merged[k] = v
 	}
-	// Create instance of our new dynamic type.
-	typ := reflect.StructOf(fields)
-	inst := reflect.New(typ)
-	// Copy the values from our typed fields.
-	for i := 0; i < reflect.TypeOf(output).NumField(); i++ {
-		inst.Elem().FieldByName(reflect.TypeOf(output).Field(i).Name).Set(reflect.ValueOf(output).Field(i))
-	}
-	// Copy the values from our untyped fields.
-	for k, v := range c.UntypedClaims {
-		inst.Elem().FieldByName(fmt.Sprintf("A%s", k)).Set(reflect.ValueOf(v))
-	}
-	return json.Marshal(inst.Interface())
+	return json.Marshal(merged)
 }
 
 // Jwt defines a Jave web token
@@ -176,6 +167,13 @@ func (jwt *Jwt) Verify() error {
 	if jwt.Header.Cty != "" && jwt.Header.Cty != JwtType {
 		return ErrJwtFormat
 
+	}
+	// RFC 7515 §4.1.11: extension header parameters listed in "crit" must be understood
+	// and processed, otherwise the JWS is invalid. gose implements no extensions, so any
+	// non-empty "crit" is fatal. Enforced here rather than in the gose verifier so every
+	// path through the jose layer inherits it.
+	if len(jwt.Header.Crit) > 0 {
+		return ErrCritHeaderNotSupported
 	}
 	for k := range jwt.Claims.UntypedClaims {
 		if _, invalid := reservedJwtClaims[k]; invalid {
